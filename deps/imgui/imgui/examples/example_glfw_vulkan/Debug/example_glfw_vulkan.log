@@ -1,0 +1,11 @@
+﻿  imgui.cpp
+  imgui_demo.cpp
+  imgui_draw.cpp
+  imgui_tables.cpp
+  imgui_widgets.cpp
+  imgui_impl_glfw.cpp
+  imgui_impl_vulkan.cpp
+  main.cpp
+  Generating Code...
+  example_glfw_vulkan.vcxproj -> C:\Users\suwako\dev\now\ShaderPlayground\dep\imgui-docking\imgui\examples\example_glfw_vulkan\Debug\example_glfw_vulkan.exe
+  C:\Users\suwako\dev\now\ShaderPlayground\dep\imgui-docking\imgui\examples\example_glfw_vulkan\Debug\example_glfw_vulkan.exe: message: deploying dependencies
