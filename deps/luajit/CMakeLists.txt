@@ -17,7 +17,7 @@ else()
   elseif(UNIX AND CMAKE_SYSTEM_NAME STREQUAL "SunOS")
     set(LUAJIT_LIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib/illumos-x64)
   endif()
-  set(LUAJIT_LIB ${LUAJIT_LIB_DIR}/luajit.a)
+  set(LUAJIT_LIB ${LUAJIT_LIB_DIR}/libluajit.a)
 endif()
 
 add_library(luajit STATIC IMPORTED GLOBAL)

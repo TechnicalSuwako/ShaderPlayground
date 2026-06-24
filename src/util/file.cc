@@ -38,7 +38,7 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <fstream>
 
 vector<u8> read_file(const string &filename, bool binary) {
-  int flags;
+  std::ios::openmode flags;
   if (binary) {
     flags = std::ios::binary | std::ios::ate;
   } else {
@@ -63,7 +63,7 @@ vector<u8> read_file(const string &filename, bool binary) {
 }
 
 bool write_file(const string &filename, vector<string> contents, bool binary) {
-  int flags;
+  std::ios::openmode flags;
   if (binary) {
     flags = std::ios::binary | std::ios::ate;
   } else {

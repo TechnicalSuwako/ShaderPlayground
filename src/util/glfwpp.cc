@@ -38,7 +38,7 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace glfwpp {
   Instance::Instance() {
     if (!glfwInit()) {
-      throw "GLFWの初期化に失敗しました";
+      throw std::runtime_error("GLFWの初期化に失敗しました");
     }
   }
 
@@ -128,7 +128,7 @@ namespace glfwpp {
     m_Width = width;
     m_Height = height;
     if (!m_Window) {
-      throw "GLFWウィンドウの作成に失敗しました";
+      throw std::runtime_error("GLFWウィンドウの作成に失敗しました");
     }
 
     glfwMakeContextCurrent(m_Window);

@@ -13,7 +13,6 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "静的リンク" FORCE)
 
 if(MSVC) 
-  # set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Release>:Release>")
   set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
   add_compile_options(/utf-8)
 endif()
@@ -28,6 +27,10 @@ option(GLFW_BUILD_DOCS OFF)
 option(GLFW_INSTALL OFF)
 add_subdirectory(deps/glfw)
 
+if(UNIX)
+  find_package(OpenGL REQUIRED)
+endif()
+
 add_subdirectory(deps/glm)
 add_subdirectory(deps/imgui)
 add_subdirectory(deps/luajit)
@@ -35,23 +38,69 @@ add_subdirectory(deps/sol2)
 add_subdirectory(deps/sqlite)
 add_subdirectory(deps/stb_image)
 
-
 file(GLOB_RECURSE SHADERPLAYGROUND_SRC CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cc")
 file(GLOB_RECURSE SHADERPLAYGROUND_INC CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/include/*.hh")
 
 add_executable(shaderplayground main.cc ${SHADERPLAYGROUND_SRC} ${SHADERPLAYGROUND_INC})
 set_target_properties(shaderplayground PROPERTIES CXX_STANDARD 20)
 
+set(PLATFORM_LIBS "")
+
 if(UNIX)
   if(CMAKE_SYSTEM_NAME STREQUAL "SunOS")
-    message(STATUS "Solaris又はIllumosで静的リンクが不可能為、動的リンクで伺います。")
-  elseif(CMAKE_SYSTEM_NAME STREQUAL "Haiku")
-    message(STATUS "Haikuで静的リンクが不可能為、動的リンクで伺います。")
-  elseif(APPLE)
-    target_link_options(shaderplayground PRIVATE -static -static-libstdc++ -static-libgcc)
+    message(STATUS "【！】Solaris又はIllumosで静的リンクが不可能為、動的リンクで伺います。")
   else()
-    target_link_options(shaderplayground PRIVATE -static)
+    target_link_options(shaderplayground PRIVATE -static-libstdc++ -static-libgcc)
   endif()
+
+  if(CMAKE_SYSTEM_NAME STREQUAL "SunOS")
+    list(APPEND PLATFORM_LIBS
+      -Wl,-Bstatic
+      ${CMAKE_SOURCE_DIR}/deps/xlibre/lib/illumos-x64/libX11.a
+      ${CMAKE_SOURCE_DIR}/deps/xlibre/lib/illumos-x64/libxcb.a
+      ${CMAKE_SOURCE_DIR}/deps/xlibre/lib/illumos-x64/libXau.a
+      ${CMAKE_SOURCE_DIR}/deps/xlibre/lib/illumos-x64/libXdmcp.a
+      -Wl,-Bdynamic
+    )
+  elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    list(APPEND PLATFORM_LIBS
+      -Wl,-Bstatic
+      ${CMAKE_SOURCE_DIR}/deps/xlibre/lib/linux-x64/libX11.a
+      ${CMAKE_SOURCE_DIR}/deps/xlibre/lib/linux-x64/libxcb.a
+      ${CMAKE_SOURCE_DIR}/deps/xlibre/lib/linux-x64/libXau.a
+      ${CMAKE_SOURCE_DIR}/deps/xlibre/lib/linux-x64/libXdmcp.a
+      -Wl,-Bdynamic
+    )
+  elseif(CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
+    list(APPEND PLATFORM_LIBS
+      -Wl,-Bstatic
+      ${CMAKE_SOURCE_DIR}/deps/xlibre/lib/freebsd-x64/libX11.a
+      ${CMAKE_SOURCE_DIR}/deps/xlibre/lib/freebsd-x64/libxcb.a
+      ${CMAKE_SOURCE_DIR}/deps/xlibre/lib/freebsd-x64/libXau.a
+      ${CMAKE_SOURCE_DIR}/deps/xlibre/lib/freebsd-x64/libXdmcp.a
+      -Wl,-Bdynamic
+    )
+  elseif(CMAKE_SYSTEM_NAME STREQUAL "OpenBSD")
+    list(APPEND PLATFORM_LIBS
+      -Wl,-Bstatic
+      ${CMAKE_SOURCE_DIR}/deps/xlibre/lib/openbsd-x64/libX11.a
+      ${CMAKE_SOURCE_DIR}/deps/xlibre/lib/openbsd-x64/libxcb.a
+      ${CMAKE_SOURCE_DIR}/deps/xlibre/lib/openbsd-x64/libXau.a
+      ${CMAKE_SOURCE_DIR}/deps/xlibre/lib/openbsd-x64/libXdmcp.a
+      -Wl,-Bdynamic
+    )
+  elseif(CMAKE_SYSTEM_NAME STREQUAL "NetBSD")
+    list(APPEND PLATFORM_LIBS
+      -Wl,-Bstatic
+      ${CMAKE_SOURCE_DIR}/deps/xlibre/lib/netbsd-x64/libX11.a
+      ${CMAKE_SOURCE_DIR}/deps/xlibre/lib/netbsd-x64/libxcb.a
+      ${CMAKE_SOURCE_DIR}/deps/xlibre/lib/netbsd-x64/libXau.a
+      ${CMAKE_SOURCE_DIR}/deps/xlibre/lib/netbsd-x64/libXdmcp.a
+      -Wl,-Bdynamic
+    )
+  endif()
+
+  list(APPEND PLATFORM_LIBS OpenGL::GL)
 endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
@@ -123,6 +172,7 @@ target_link_libraries(shaderplayground PRIVATE
   luajit
   sqlite3
   sol2
+  ${PLATFORM_LIBS}
 )
 
 target_include_directories(shaderplayground PRIVATE
