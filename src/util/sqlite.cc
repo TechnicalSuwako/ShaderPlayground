@@ -81,7 +81,7 @@ namespace sqlite {
 
   bool Stmt::Prepare(const std::string &sql) {
     if (sqlite3_prepare_v2(m_pDB, sql.c_str(), static_cast<int>(sql.size() + 1), &m_pSTMT, nullptr) != SQLITE_OK) {
-      throw std::runtime_error("SQLの準備に失敗。");
+      throw std::runtime_error("SQLの準備に失敗: " + std::string(sqlite3_errmsg(m_pDB)));
     }
 
     return true;

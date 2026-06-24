@@ -75,7 +75,9 @@ int main(void) {
   window.MakeContextCurrent();
   glfw.SwapInterval(1);
 
+#ifndef PRODUCTION_BUILD
   bool showDemo = true;
+#endif
 
   // GLADを初期化
   if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
@@ -95,12 +97,14 @@ int main(void) {
 
   // データベースからシェーダーとLuaコードの受け取り
   vector<db::ShaderData> codeMap = db::GetAllShaders(db);
+  u32 shaderId;
   string shaderName;
   string VERT = "";
   string FRAG = "";
   string LUA = "";
 
   for (const auto &c : codeMap) {
+    shaderId = c.id;
     shaderName = c.name;
     VERT = c.vertexShader.code;
     FRAG = c.fragmentShader.code;
@@ -153,7 +157,9 @@ int main(void) {
 
     gui::showTitleBar();
 
+#ifndef PRODUCTION_BUILD
     if (showDemo) ImGui::ShowDemoWindow(&showDemo);
+#endif
 
     vertEditor.Render();
     fragEditor.Render();
@@ -174,7 +180,6 @@ int main(void) {
           shaderProgram.Reload(VERT, FRAG);
           luaEngine.Reload(LUA);
           {
-            //lua::LuaEngine newLua(LUA);
             lua::LuaMesh newMesh = luaEngine.GetMesh();
 
             VAO.BindVertexArray();
@@ -211,6 +216,13 @@ int main(void) {
       ImGui::SameLine();
 
       if (ImGui::Button("保存（CTRL + S）")) {
+        VERT = vertEditor.Get().GetText();
+        FRAG = fragEditor.Get().GetText();
+        LUA = luaEditor.Get().GetText();
+
+        db::SaveCode(db, shaderId, VERT, "vertex_shader");
+        db::SaveCode(db, shaderId, FRAG, "fragment_shader");
+        db::SaveCode(db, shaderId, LUA, "lua_code");
       }
 
       ImGui::Text("現在フレームレート： %.3f ms/frame (%.1f FPS)", 1000.0f / ge.GetIO().Framerate, ge.GetIO().Framerate);

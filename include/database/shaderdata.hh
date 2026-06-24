@@ -56,4 +56,5 @@ namespace db {
   };
 
   vector<ShaderData> GetAllShaders(sqlite::Instance &db);
+  void SaveCode(sqlite::Instance &db, u32 id, const string &code, const string &table);
 } // namespace db

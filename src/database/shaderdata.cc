@@ -36,6 +36,7 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <util/sqlite.hh>
 #include <sqlite3.h>
 #include <iostream>
+#include <cassert>
 
 namespace db {
   vector<ShaderData> GetAllShaders(sqlite::Instance &db) {
@@ -89,5 +90,16 @@ namespace db {
     }
 
     return out;
+  }
+
+  void SaveCode(sqlite::Instance &db, u32 id, const string &code, const string &table) {
+    sqlite::Stmt stmt(db.GetDB());
+    string sql = "UPDATE " + table + " SET code = ? WHERE id = ?;";
+    stmt.Prepare(sql);
+
+    stmt.BindText(1, code);
+    stmt.BindInt(2, id);
+
+    assert(stmt.Step() == SQLITE_DONE && "コードの保存に失敗。\n");
   }
 } // namespace db
