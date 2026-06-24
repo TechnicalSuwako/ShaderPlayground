@@ -41,6 +41,10 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 struct Program;
 
+namespace gui {
+  class ConsoleLog;
+} // namespace gui
+
 namespace lua {
   struct LuaMesh {
     vector<f32> vertices;
@@ -58,14 +62,15 @@ namespace lua {
 
   class LuaEngine {
     public:
-      LuaEngine(const string &code, Program *prog);
+      LuaEngine(const string &code, Program *prog, gui::ConsoleLog *cmd = nullptr);
       ~LuaEngine();
 
       LuaMesh &GetMesh() { return m_Mesh; };
       const LuaMesh &GetMesh() const { return m_Mesh; };
       void Reload(const string &code);
       void Update();
-      void SetProgram(Program *prog);
+      void SetProgram(Program *prog) { m_Program = prog; }
+      void SetConsole(gui::ConsoleLog *cmd) { m_Console = cmd; }
 
     private:
       void BindGraphics();
@@ -76,5 +81,6 @@ namespace lua {
       sol::state m_Lua;
       string m_Code;
       Program *m_Program = nullptr;
+      gui::ConsoleLog *m_Console = nullptr;
   };
 } // namespace lua

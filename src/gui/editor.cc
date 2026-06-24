@@ -18,6 +18,9 @@ namespace gui {
     } else if (lang == Lua) {
       m_Editor.SetLanguage(TextEditor::Language::Lua());
     }
+
+    //m_Editor.SetTabSize(2);
+    //m_Editor.SetInsertSpacesOnTabs(true);
   }
 
   Editor::~Editor() {}

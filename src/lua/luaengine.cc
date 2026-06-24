@@ -36,11 +36,14 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <glad/glad.h>
 #include <shader/shader.hh>
 #include <glfw/glfw3.h>
+#include <gui/consolelog.hh>
 
 namespace lua {
-  LuaEngine::LuaEngine(const string &code, Program *prog)
+  LuaEngine::LuaEngine(const string &code, Program *prog, gui::ConsoleLog *cmd)
     : m_Code(code)
-    , m_Program(prog) {
+    , m_Program(prog)
+    , m_Console(cmd)
+  {
     m_Lua.open_libraries(
       sol::lib::base,
       sol::lib::math,
@@ -57,7 +60,6 @@ namespace lua {
 
   void LuaEngine::Reload(const string &code) {
     m_Code = code;
-    //BindGraphics();
     Execute();
   }
 
@@ -68,12 +70,13 @@ namespace lua {
 
       if (!res.valid()) {
         sol::error err = res;
-        std::cerr << err.what() << std::endl;
+        gui::LogEntry entry = {};
+        entry.type = gui::LogType::Error;
+        entry.text = err.what();
+        if (m_Console) m_Console->Add(entry);
+        else std::cerr << err.what() << std::endl;
       }
     }
-  }
-
-  void LuaEngine::SetProgram(Program *prog) {
   }
 
   void LuaEngine::BindGraphics() {
@@ -118,7 +121,11 @@ namespace lua {
 
     if (!res.valid()) {
       sol::error err = res;
-      std::cerr << err.what() << std::endl;
+      gui::LogEntry entry = {};
+      entry.type = gui::LogType::Error;
+      entry.text = err.what();
+      if (m_Console) m_Console->Add(entry);
+      else std::cerr << err.what() << std::endl;
     }
   }
 } // namespace lua
