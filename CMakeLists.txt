@@ -169,6 +169,7 @@ endif()
 target_link_libraries(shaderplayground PRIVATE
   glad
   glfw
+  imgui
   luajit
   sqlite3
   sol2

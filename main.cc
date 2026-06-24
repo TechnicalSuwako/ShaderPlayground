@@ -44,6 +44,13 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <database/setup.hh>
 #include <database/shaderdata.hh>
 #include <lua/luaengine.hh>
+#include <gui/guiengine.hh>
+#include <gui/titlebar.hh>
+#include <gui/editor.hh>
+
+#include <imgui.h>
+#include <backends/imgui_impl_glfw.h>
+#include <backends/imgui_impl_opengl3.h>
 
 #include <sol.hpp>
 
@@ -63,9 +70,12 @@ int main(void) {
 
   // ウィンドウを作成
   string winName = sofname + " " + version::full;
-  glfwpp::Window window(windowWidth, windowHeight, winName);
+  f32 mainScale = ImGui_ImplGlfw_GetContentScaleForMonitor(glfwGetPrimaryMonitor());
+  glfwpp::Window window((windowWidth * mainScale), (windowHeight * mainScale), winName);
   window.MakeContextCurrent();
   glfw.SwapInterval(1);
+
+  bool showDemo = true;
 
   // GLADを初期化
   if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
@@ -73,6 +83,10 @@ int main(void) {
     return -1;
   }
 
+  // ImGui設定
+  gui::GuiEngine ge(&window);
+
+  // フレームバッファーサイズ
   window.SetFramebufferSizeCallback();
 
   // データベースが未だ存在しなければ、初期設定
@@ -81,15 +95,26 @@ int main(void) {
 
   // データベースからシェーダーとLuaコードの受け取り
   vector<db::ShaderData> codeMap = db::GetAllShaders(db);
+  string shaderName;
   string VERT = "";
   string FRAG = "";
   string LUA = "";
 
   for (const auto &c : codeMap) {
+    shaderName = c.name;
     VERT = c.vertexShader.code;
     FRAG = c.fragmentShader.code;
     LUA = c.luaCode.code;
   }
+
+  string title = shaderName + "（頂点シェーダー）";
+  gui::Editor vertEditor(title, "VertexEditor", VERT, gui::Glsl, ge.GetCjkFont(), ge.GetMonoFont());
+
+  title = shaderName + "（フラグメントシェーダー）";
+  gui::Editor fragEditor(title, "FragmentEditor", FRAG, gui::Glsl, ge.GetCjkFont(), ge.GetMonoFont());
+
+  title = shaderName + "（Luaエディター）";
+  gui::Editor luaEditor(title, "LuaEditor", LUA, gui::Lua, ge.GetCjkFont(), ge.GetMonoFont());
 
   // シェーダーをコンパイル
   Shader vertexShader(VERT, GL_VERTEX_SHADER);
@@ -120,6 +145,51 @@ int main(void) {
 
   // メインレンダリングループ
   while (!window.ShouldClose()) {
+    glfw.PollEvents();
+    if (window.GetAttrib(glfwpp::Attributes::Iconified) != 0) {
+      ImGui_ImplGlfw_Sleep(10);
+      continue;
+    }
+
+    gui::showTitleBar();
+
+    if (showDemo) ImGui::ShowDemoWindow(&showDemo);
+
+    vertEditor.Render();
+    fragEditor.Render();
+    luaEditor.Render();
+
+    {
+      static float f = 0.0f;
+      static int counter = 0;
+
+      ImGui::Begin("コントロール");
+
+      if (ImGui::Button("コンパイル（F5）")) {
+        VERT = vertEditor.Get().GetText();
+        FRAG = fragEditor.Get().GetText();
+        //LUA = luaEditor.Get().GetText();
+
+        try {
+          Shader newVert(VERT, GL_VERTEX_SHADER);
+          Shader newFrag(FRAG, GL_FRAGMENT_SHADER);
+          shaderProgram = Program(newVert, newFrag);
+        } catch (const std::exception &e) {
+          std::cerr << e.what() << std::endl;
+        }
+      }
+
+      ImGui::SameLine();
+
+      if (ImGui::Button("保存（CTRL + S）")) {
+      }
+
+      ImGui::Text("現在フレームレート： %.3f ms/frame (%.1f FPS)", 1000.0f / ge.GetIO().Framerate, ge.GetIO().Framerate);
+      ImGui::End();
+    }
+
+    ImGui::Render();
+
     // 画面をクリア
     shaderProgram.ClearColor(0.f, 0.f, 0.f, 1.f);
     shaderProgram.Clear();
@@ -160,8 +230,8 @@ int main(void) {
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
     // バッファをスワップし、イベントを処理
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     window.SwapBuffers();
-    glfw.PollEvents();
   }
 
   return 0;
