@@ -102,8 +102,7 @@ GLint Program::GetUniformLocation(string var) {
 }
 
 string GetDefaultVertexShader() {
-  return R"(
-#version 460 core
+  return R"(#version 460 core
 
 layout(location = 0) in vec2 aPosition;
 layout(location = 1) in vec2 aUv;
@@ -112,13 +111,11 @@ out vec2 vUv;
 void main() {
   vUv = aUv;
   gl_Position = vec4(aPosition, 0.0, 1.0);
-}
-)";
+})";
 }
 
 string GetDefaultFragmentShader() {
-  return R"(
-#version 460 core
+  return R"(#version 460 core
 
 in vec2 vUv;
 out vec4 out_color;
@@ -131,13 +128,11 @@ void main() {
   vec3 temp = mix(uColorA, uColorB, vUv.x);
   vec3 blendedColor = mix(temp, uColorC, vUv.y * 0.95);
   out_color = vec4(blendedColor, 1.0);
-}
-)";
+})";
 }
 
 string GetDefaultLuaCode() {
-  return R"(
-local mesh = {
+  return R"(local mesh = {
   vertices = {
     -1, -1,  0, 0,
      1, -1,  1, 0,
@@ -156,5 +151,31 @@ local mesh = {
 }
 
 graphics.set_mesh(mesh)
-)";
+
+function update()
+  local t = graphics.get_time() -- glfwGetTime()
+  local speed = 1.0 -- animation speed
+  local phase = math.pi * 2.0 / 3.0 -- 120 deg phase diff (3 color)
+
+  graphics.set_uniform3(
+    "uColorA",
+    math.sin(t * speed + 0.0) * 0.5 + 0.5,
+    math.sin(t * speed + phase) * 0.5 + 0.5,
+    math.sin(t * speed + phase * 2.0) * 0.5 + 0.5
+  )
+
+  graphics.set_uniform3(
+    "uColorB",
+    math.sin(t * speed + phase * 2.0) * 0.5 + 0.5,
+    math.sin(t * speed + 0.0) * 0.5 + 0.5,
+    math.sin(t * speed + phase) * 0.5 + 0.5
+  )
+
+  graphics.set_uniform3(
+    "uColorC",
+    math.sin(t * speed + phase) * 0.5 + 0.5,
+    math.sin(t * speed + phase * 2.0) * 0.5 + 0.5,
+    math.sin(t * speed + phase + 0.0) * 0.5 + 0.5
+  )
+end)";
 }

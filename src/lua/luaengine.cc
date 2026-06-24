@@ -33,10 +33,14 @@ CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFT
 OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 #include <lua/luaengine.hh>
-//#include <utility>
+#include <glad/glad.h>
+#include <shader/shader.hh>
+#include <glfw/glfw3.h>
 
 namespace lua {
-  LuaEngine::LuaEngine(const string &code) : m_Code(code) {
+  LuaEngine::LuaEngine(const string &code, Program *prog)
+    : m_Code(code)
+    , m_Program(prog) {
     m_Lua.open_libraries(
       sol::lib::base,
       sol::lib::math,
@@ -55,6 +59,21 @@ namespace lua {
     m_Code = code;
     //BindGraphics();
     Execute();
+  }
+
+  void LuaEngine::Update() {
+    sol::function update = m_Lua["update"];
+    if (update.valid()) {
+      sol::protected_function_result res = update();
+
+      if (!res.valid()) {
+        sol::error err = res;
+        std::cerr << err.what() << std::endl;
+      }
+    }
+  }
+
+  void LuaEngine::SetProgram(Program *prog) {
   }
 
   void LuaEngine::BindGraphics() {
@@ -82,6 +101,15 @@ namespace lua {
           a["offset"],
         });
       }
+    };
+
+    m_Lua["graphics"]["get_time"] = [&]() -> f32 {
+      return (f32)glfwGetTime();
+    };
+
+    m_Lua["graphics"]["set_uniform3"] = [&](const string &name, f32 x, f32 y, f32 z) {
+      if (!m_Program) return;
+      glUniform3f(m_Program->GetUniformLocation(name), x, y, z);
     };
   }
 

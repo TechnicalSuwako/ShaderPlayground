@@ -128,7 +128,7 @@ int main(void) {
   Program shaderProgram(vertexShader, fragmentShader);
 
   // 頂点データはLuaから受け取る
-  lua::LuaEngine luaEngine(LUA);
+  lua::LuaEngine luaEngine(LUA, &shaderProgram);
   auto &mesh = luaEngine.GetMesh();
 
   VertexArrays VAO(1);
@@ -178,6 +178,7 @@ int main(void) {
 
         try {
           shaderProgram.Reload(VERT, FRAG);
+          luaEngine.SetProgram(&shaderProgram);
           luaEngine.Reload(LUA);
           {
             lua::LuaMesh newMesh = luaEngine.GetMesh();
@@ -237,34 +238,7 @@ int main(void) {
 
     // シェーダープログラムを使用
     shaderProgram.Use();
-
-    // 時間に基づいて色をアニメーション
-    f32 time = (f32)glfw.GetTime();
-    f32 speed = 1.0f; // アニメーションの速度
-    f32 phase = 2.0f * 3.14159f / 3.0f; // // 120度の位相差（3色用）
-
-    // uColorA: 赤 -> 緑 -> 青
-    Vector3 colorA;
-    colorA.r = sin(time * speed + 0.0f) * 0.5f + 0.5f; // 0.0 to 1.0
-    colorA.g = sin(time * speed + phase) * 0.5f + 0.5f;
-    colorA.b = sin(time * speed + 2.0f * phase) * 0.5f + 0.5f;
-
-    // uColorB: 緑 -> 青 -> 赤
-    Vector3 colorB;
-    colorB.r = sin(time * speed + 2.0f * phase) * 0.5f + 0.5f;
-    colorB.g = sin(time * speed + 0.0f) * 0.5f + 0.5f;
-    colorB.b = sin(time * speed + phase) * 0.5f + 0.5f;
-
-    // uColorC: 青 -> 赤 -> 緑
-    Vector3 colorC;
-    colorC.r = sin(time * speed + phase) * 0.5f + 0.5f;
-    colorC.g = sin(time * speed + 2.0f * phase) * 0.5f + 0.5f;
-    colorC.b = sin(time * speed + 0.0f) * 0.5f + 0.5f;
-
-    // ユニフォームを設定
-    glUniform3f(shaderProgram.GetUniformLocation("uColorA"), colorA.r, colorA.g, colorA.b); // 赤
-    glUniform3f(shaderProgram.GetUniformLocation("uColorB"), colorB.r, colorB.g, colorB.b); // 緑
-    glUniform3f(shaderProgram.GetUniformLocation("uColorC"), colorC.r, colorC.g, colorC.b); // 青
+    luaEngine.Update();
 
     // クアッドを描画
     VAO.BindVertexArray();

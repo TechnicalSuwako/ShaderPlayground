@@ -39,6 +39,8 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define SOL_ALL_SAFETIES_ON 1
 #include <sol.hpp>
 
+struct Program;
+
 namespace lua {
   struct LuaMesh {
     vector<f32> vertices;
@@ -56,19 +58,23 @@ namespace lua {
 
   class LuaEngine {
     public:
-      LuaEngine(const string &code);
+      LuaEngine(const string &code, Program *prog);
       ~LuaEngine();
 
       LuaMesh &GetMesh() { return m_Mesh; };
       const LuaMesh &GetMesh() const { return m_Mesh; };
       void Reload(const string &code);
+      void Update();
+      void SetProgram(Program *prog);
 
     private:
       void BindGraphics();
       void Execute();
 
+    private:
       LuaMesh m_Mesh;
       sol::state m_Lua;
       string m_Code;
+      Program *m_Program = nullptr;
   };
 } // namespace lua
