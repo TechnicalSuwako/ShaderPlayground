@@ -33,7 +33,7 @@ CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFT
 OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 #include <glad/glad.h>
-#include <util/glfw.hh>
+#include <util/glfwpp.hh>
 #include <iostream>
 #include <version.hh>
 #include <util/types.hh>
@@ -47,22 +47,25 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <sol.hpp>
 
-constexpr int windowWidth = 800;
-constexpr int windowHeight = 600;
+constexpr int windowWidth = 1280;
+constexpr int windowHeight = 720;
 string sofname = "Shader Playground";
 
 int main(void) {
   // GLFWを初期化
-  glfw::Instance glfwInstance;
-  glfwInstance.SetContextMajorVersion(4);
-  glfwInstance.SetContextMinorVersion(6);
-  glfwInstance.SetOpenGLProfile(glfw::OpenGLProfile::Core);
-  glfwInstance.SetForwardCompatibility(true);
-  glfwInstance.CreateWindowHints();
+  glfwpp::Instance glfw;
+  glfw.SetErrorCallback();
+  glfw.SetContextMajorVersion(4);
+  glfw.SetContextMinorVersion(6);
+  glfw.SetOpenGLProfile(glfwpp::Attributes::OpenGLCore);
+  glfw.SetForwardCompatibility(true);
+  glfw.CreateWindowHints();
 
   // ウィンドウを作成
   string winName = sofname + " " + version::full;
-  glfw::Window window(windowWidth, windowHeight, winName);
+  glfwpp::Window window(windowWidth, windowHeight, winName);
+  window.MakeContextCurrent();
+  glfw.SwapInterval(1);
 
   // GLADを初期化
   if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
@@ -125,7 +128,7 @@ int main(void) {
     shaderProgram.Use();
 
     // 時間に基づいて色をアニメーション
-    f32 time = (f32)window.GetTime();
+    f32 time = (f32)glfw.GetTime();
     f32 speed = 1.0f; // アニメーションの速度
     f32 phase = 2.0f * 3.14159f / 3.0f; // // 120度の位相差（3色用）
 
@@ -158,7 +161,7 @@ int main(void) {
 
     // バッファをスワップし、イベントを処理
     window.SwapBuffers();
-    window.PollEvents();
+    glfw.PollEvents();
   }
 
   return 0;
