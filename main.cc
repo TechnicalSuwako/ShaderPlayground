@@ -168,12 +168,41 @@ int main(void) {
       if (ImGui::Button("コンパイル（F5）")) {
         VERT = vertEditor.Get().GetText();
         FRAG = fragEditor.Get().GetText();
-        //LUA = luaEditor.Get().GetText();
+        LUA = luaEditor.Get().GetText();
 
         try {
-          Shader newVert(VERT, GL_VERTEX_SHADER);
-          Shader newFrag(FRAG, GL_FRAGMENT_SHADER);
-          shaderProgram = Program(newVert, newFrag);
+          shaderProgram.Reload(VERT, FRAG);
+          luaEngine.Reload(LUA);
+          {
+            //lua::LuaEngine newLua(LUA);
+            lua::LuaMesh newMesh = luaEngine.GetMesh();
+
+            VAO.BindVertexArray();
+
+            VBO.BindBuffer();
+            VBO.BufferData(
+              newMesh.vertices.data(),
+              newMesh.vertices.size() * sizeof(f32)
+            );
+
+            EBO.BindBuffer();
+            EBO.BufferData(
+              newMesh.indices.data(),
+              newMesh.indices.size() * sizeof(f32)
+            );
+
+            for (const auto &a : newMesh.attr) {
+              glVertexAttribPointer(
+                a.location,
+                a.size,
+                GL_FLOAT,
+                GL_FALSE,
+                a.stride,
+                (any)(uintptr_t)a.offset
+              );
+              glEnableVertexAttribArray(a.location);
+            }
+          }
         } catch (const std::exception &e) {
           std::cerr << e.what() << std::endl;
         }

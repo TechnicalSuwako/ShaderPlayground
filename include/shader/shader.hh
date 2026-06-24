@@ -53,6 +53,7 @@ struct Program {
   GLuint GetProgram() { return id; }
 
   void Use();
+  void Reload(const string &vert, const string &frag);
   void ClearColor(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha);
   void Clear(GLbitfield mask = GL_COLOR_BUFFER_BIT);
   GLint GetUniformLocation(string var);

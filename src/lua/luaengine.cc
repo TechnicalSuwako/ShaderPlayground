@@ -33,6 +33,7 @@ CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFT
 OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 #include <lua/luaengine.hh>
+//#include <utility>
 
 namespace lua {
   LuaEngine::LuaEngine(const string &code) : m_Code(code) {
@@ -48,6 +49,12 @@ namespace lua {
   }
 
   LuaEngine::~LuaEngine() {
+  }
+
+  void LuaEngine::Reload(const string &code) {
+    m_Code = code;
+    //BindGraphics();
+    Execute();
   }
 
   void LuaEngine::BindGraphics() {

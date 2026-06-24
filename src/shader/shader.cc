@@ -34,6 +34,7 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 #include <shader/shader.hh>
 #include <stdexcept>
+#include <utility>
 
 Shader::Shader(const string &src, GLenum type) {
   id = glCreateShader(type);
@@ -73,6 +74,15 @@ Program::Program(Shader vertexShader, Shader fragmentShader) {
 
 Program::~Program() {
   glDeleteProgram(id);
+}
+
+void Program::Reload(const string &vert, const string &frag) {
+  Program newProg(
+    Shader(vert, GL_VERTEX_SHADER),
+    Shader(frag, GL_FRAGMENT_SHADER)
+  );
+
+  std::swap(id, newProg.id);
 }
 
 void Program::Use() {

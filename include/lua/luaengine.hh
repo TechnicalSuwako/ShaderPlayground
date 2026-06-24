@@ -61,6 +61,7 @@ namespace lua {
 
       LuaMesh &GetMesh() { return m_Mesh; };
       const LuaMesh &GetMesh() const { return m_Mesh; };
+      void Reload(const string &code);
 
     private:
       void BindGraphics();
