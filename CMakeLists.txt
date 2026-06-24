@@ -113,24 +113,20 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInf
 else()
   set(PRODUCTION_BUILD ON CACHE BOOL "リリース版？" FORCE)
   if(WIN32)
-    set(DB_NAME "C:/Program Files/076Studio/ShaderPlayground/data/shaderplayground.db" CACHE STRING "データベースのパス" FORCE)
+    set(DB_NAME "$ENV{LOCALAPPDATA}/076Studio/ShaderPlayground/data/shaderplayground.db" CACHE STRING "データベースのパス" FORCE)
   elseif(UNIX)
-    if(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "SunOS")
-      set(DB_NAME "/usr/share/shaderplayground/data/shaderplayground.db" CACHE STRING "データベースのパス" FORCE)
-    else()
-      set(DB_NAME "/usr/local/share/shaderplayground/data/shaderplayground.db" CACHE STRING "データベースのパス" FORCE)
-    endif()
+    set(DB_NAME "$ENV{HOME}/.local/share/shaderplayground/shaderplayground.db" CACHE STRING "データベースのパス" FORCE)
   else()
     set(DB_NAME "shaderplayground.db" CACHE STRING "データベースのパス" FORCE)
   endif()
-  target_compile_definitions(shaderplayground PRIVATE DB_NAME="${DB_NAME}")
+  target_compile_definitions(shaderplayground PRIVATE PRODUCTION_BUILD DB_NAME="${DB_NAME}")
 endif()
 
 message(STATUS "DB_NAME = ${DB_NAME}")
 
 if(WIN32)
   set(INSTALL_BINDIR "C:/Program Files/076Studio/ShaderPlayground")
-  set(INSTALL_DATADIR "C:/User/suwako/AppData/Local/076Studio/ShaderPlayground")
+  set(INSTALL_DATADIR "$ENV{LOCALAPPDATA}/076Studio/ShaderPlayground")
 else()
   include(GNUInstallDirs)
   set(INSTALL_BINDIR ${CMAKE_INSTALL_BINDIR})
@@ -179,3 +175,7 @@ target_link_libraries(shaderplayground PRIVATE
 target_include_directories(shaderplayground PRIVATE
   "${CMAKE_CURRENT_SOURCE_DIR}/include"
 )
+
+if(MSVC)
+  set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT shaderplayground)
+endif()

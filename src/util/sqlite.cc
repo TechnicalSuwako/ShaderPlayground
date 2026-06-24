@@ -37,14 +37,61 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <sqlite3.h>
 #include <iostream>
 #include <stdexcept>
+#include <filesystem>
 #include <version.hh>
 
-constexpr std::string_view DB_PATH = DB_NAME;
+#if defined(WIN32) || defined(WIN64)
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <windows.h>
+#include <shlobj.h>
+
+std::filesystem::path GetLocalAppDataPath() {
+  PWSTR path = nullptr;
+  HRESULT hr = SHGetKnownFolderPath(FOLDERID_LocalAppData, 0, nullptr, &path);
+  if (FAILED(hr)) throw std::runtime_error("LocalAppDataパスの受取の失敗。");
+
+  std::filesystem::path p(path);
+  CoTaskMemFree(path);
+
+  return p;
+}
+#endif
+
+std::filesystem::path GetUserDataPath() {
+#if defined(WIN32) || defined(WIN64)
+  return GetLocalAppDataPath() / "076Studio" / "ShaderPlayground";
+#elif defined(__APPLE__)
+  cstr home = std::getenv("HOME");
+  if (!home) throw std::runtime_error("HOME環境変数がありません。");
+
+  return std::filesystem::path(home) / "Library" / "Application Support" / "ShaderPlayground";
+#else
+  cstr xdg = std::getenv("XDG_DATA_HOME");
+  if (xdg) return std::filesystem::path(xdg) / "shaderplayground";
+
+  cstr home = std::getenv("HOME");
+  if (!home) throw std::runtime_error("HOME環境変数がありません。");
+
+  return std::filesystem::path(home) / ".local" / "share" / "shaderplayground";
+#endif
+}
 
 namespace sqlite {
   Instance::Instance() {
     m_pDB = nullptr;
+#ifdef PRODUCTION_BUILD
+    std::filesystem::path dbPath = GetUserDataPath() / "shaderplayground.db";
+    if (!std::filesystem::exists(std::filesystem::path(dbPath).parent_path())) {
+      std::filesystem::create_directories(std::filesystem::path(dbPath).parent_path());
+    }
+
+    if (sqlite3_open(dbPath.string().c_str(), &m_pDB) != SQLITE_OK) {
+#else
+    constexpr std::string_view DB_PATH = DB_NAME;
     if (sqlite3_open(DB_PATH.data(), &m_pDB) != SQLITE_OK) {
+#endif
       throw std::runtime_error("SQLiteデータベースを開けられません。");
     }
   }

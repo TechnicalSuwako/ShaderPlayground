@@ -51,6 +51,7 @@ namespace glfwpp {
   }
 
   GLFWerrorfun Instance::SetErrorCallback() {
+    glfwSetErrorCallback(glfw_error_callback);
     return nullptr;
   }
 
