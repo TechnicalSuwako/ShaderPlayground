@@ -63,9 +63,21 @@ namespace gui {
     ImGui::PushFont(m_CjkFont);
     ImGui::Begin(m_Title.c_str());
     ImGui::PopFont();
+
     ImGui::PushFont(m_MonoFont);
     m_Editor.Render(m_RenderName.c_str());
     ImGui::PopFont();
+
+    // CTRL + D
+    //if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows)) {
+    //  bool ctrl = ImGui::GetIO().KeyCtrl;
+
+    //  if (ctrl && ImGui::IsKeyPressed(ImGuiKey_D, false)) {
+    //    auto cursor = m_Editor.GetCurrentCursorPosition();
+    //    auto lines = m_Editor.GetLineText(cursor.line);
+    //  }
+    //}
+
     //RenderStatusBar(m_Editor);
     ImGui::End();
   }

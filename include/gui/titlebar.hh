@@ -35,7 +35,8 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #pragma once
 
 #include <util/types.hh>
+#include <util/structs.hh>
 
 namespace gui {
-  void showTitleBar();
+  void showTitleBar(GlfwInfo &glfw);
 } // namespace gui

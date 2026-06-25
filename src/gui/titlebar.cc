@@ -39,39 +39,66 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <backends/imgui_impl_opengl3.h>
 
 namespace gui {
-  void showTitleBar() {
+  void showTitleBar(GlfwInfo &glfw) {
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
     if (ImGui::BeginMainMenuBar()) {
       if (ImGui::BeginMenu("ファイル")) {
-        if (ImGui::MenuItem("新しいファイル")) {}
-        if (ImGui::MenuItem("開く", "Ctrl+O")) {}
-        if (ImGui::BeginMenu("最近使った物")) {
-          ImGui::MenuItem("fish_hat.c");
-          ImGui::MenuItem("fish_hat.inl");
-          ImGui::MenuItem("fish_hat.h");
-          if (ImGui::BeginMenu("もっと見る...")) {
-            ImGui::MenuItem("Hello");
-            ImGui::MenuItem("Sailor");
-            ImGui::EndMenu();
-          }
-          ImGui::EndMenu();
+        if (ImGui::MenuItem("新しいファイル", "CTRL+N", false, false)) {}
+        if (ImGui::MenuItem("開く", "Ctrl+O", false, false)) {}
+        //if (ImGui::BeginMenu("最近使った物")) {
+        //  ImGui::MenuItem("fish_hat.c");
+        //  ImGui::MenuItem("fish_hat.inl");
+        //  ImGui::MenuItem("fish_hat.h");
+        //  if (ImGui::BeginMenu("もっと見る...")) {
+        //    ImGui::MenuItem("Hello");
+        //    ImGui::MenuItem("Sailor");
+        //    ImGui::EndMenu();
+        //  }
+        //  ImGui::EndMenu();
+        //}
+        if (ImGui::MenuItem("保存", "Ctrl+S")) {
+          glfw.save();
         }
-        if (ImGui::MenuItem("保存", "Ctrl+S")) {}
 
         ImGui::Separator();
-        if (ImGui::MenuItem("終了", "CTRL+Q")) {}
+        if (ImGui::MenuItem("終了", "CTRL+Q")) {
+          glfw.isRunning = false;
+        }
         ImGui::EndMenu();
       }
+
       if (ImGui::BeginMenu("編集")) {
-        if (ImGui::MenuItem("元に戻す", "Ctrl+Z")) {}
+        if (ImGui::MenuItem("元に戻す", "Ctrl+Z", false, false)) {}
         if (ImGui::MenuItem("やり直し", "Ctrl+Y", false, false)) {}
         ImGui::Separator();
-        if (ImGui::MenuItem("切り取り", "Ctrl+X")) {}
-        if (ImGui::MenuItem("コピー", "Ctrl+C")) {}
-        if (ImGui::MenuItem("貼り付け", "Ctrl+V")) {}
+        if (ImGui::MenuItem("切り取り", "Ctrl+X", false, false)) {}
+        if (ImGui::MenuItem("コピー", "Ctrl+C", false, false)) {}
+        if (ImGui::MenuItem("貼り付け", "Ctrl+V", false, false)) {}
+        if (ImGui::MenuItem("行を複製", "Ctrl+D", false, false)) {}
+        ImGui::Separator();
+        if (ImGui::MenuItem("設定", "Ctrl+,", false, false)) {}
+        ImGui::EndMenu();
+      }
+
+      if (ImGui::BeginMenu("ビルド")) {
+        if (ImGui::MenuItem("コンパイル", "F5")) {
+          glfw.compile();
+        }
+        ImGui::EndMenu();
+      }
+
+      if (ImGui::BeginMenu("ヘルプ")) {
+        if (ImGui::MenuItem("マニュアル", "F1")) {}
+        if (ImGui::MenuItem("Shader Playgroundについて", "F12")) {}
+        ImGui::EndMenu();
+      }
+
+      if (ImGui::BeginMenu("言語")) {
+        if (ImGui::MenuItem("日本語")) {}
+        if (ImGui::MenuItem("English")) {}
         ImGui::EndMenu();
       }
       ImGui::EndMainMenuBar();

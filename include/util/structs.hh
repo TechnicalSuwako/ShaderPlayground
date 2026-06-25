@@ -35,8 +35,12 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #pragma once
 
 #include <util/glfwpp.hh>
+#include <functional>
 
 struct GlfwInfo {
   glfwpp::Instance *instance;
   glfwpp::Window *window;
+  bool isRunning = true;
+  std::function<void()> compile;
+  std::function<void()> save;
 };

@@ -77,7 +77,7 @@ int main(void) {
   window.MakeContextCurrent();
   glfw.SwapInterval(1);
 
-  GlfwInfo glfwInfo = { &glfw, &window };
+  GlfwInfo glfwInfo = { &glfw, &window, true };
 
 #ifndef PRODUCTION_BUILD
   bool showDemo = true;
@@ -157,8 +157,8 @@ int main(void) {
   bool isHold = false;
 
   // メインレンダリングループ
-  while (!window.ShouldClose()) {
-    auto compileCommand = [&]() {
+  while (!window.ShouldClose() && glfwInfo.isRunning) {
+    glfwInfo.compile = [&]() {
       VERT.code = vertEditor.Get().GetText();
       FRAG.code = fragEditor.Get().GetText();
       LUA.code = luaEditor.Get().GetText();
@@ -228,7 +228,7 @@ int main(void) {
       std::cout << entry.text << std::endl;
     };
 
-    auto saveCommand = [&]() {
+    glfwInfo.save = [&]() {
       VERT.code = vertEditor.Get().GetText();
       FRAG.code = fragEditor.Get().GetText();
       LUA.code = luaEditor.Get().GetText();
@@ -266,16 +266,19 @@ int main(void) {
     bool isCompileKey = window.GetKey(GLFW_KEY_F5);
     bool ctrlMod = (window.GetKey(GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS || window.GetKey(GLFW_KEY_RIGHT_CONTROL) == GLFW_PRESS);
     bool isSaveKey = (window.GetKey(GLFW_KEY_S) == GLFW_PRESS && ctrlMod);
+    bool isQuitKey = (window.GetKey(GLFW_KEY_Q) == GLFW_PRESS && ctrlMod);
 
     if (!isHold) {
       if (isCompileKey) {
-        //isHold = true;
-        compileCommand();
+        glfwInfo.compile();
       }
 
       if (isSaveKey) {
-        //isHold = true;
-        saveCommand();
+        glfwInfo.save();
+      }
+
+      if (isQuitKey) {
+        glfwInfo.isRunning = false;
       }
     }
 
@@ -286,7 +289,7 @@ int main(void) {
       continue;
     }
 
-    gui::showTitleBar();
+    gui::showTitleBar(glfwInfo);
 
 #ifndef PRODUCTION_BUILD
     if (showDemo) ImGui::ShowDemoWindow(&showDemo);
@@ -304,13 +307,13 @@ int main(void) {
       ImGui::Begin("コントロール");
 
       if (ImGui::Button("コンパイル（F5）")) {
-        compileCommand();
+        glfwInfo.compile();
       }
 
       ImGui::SameLine();
 
       if (ImGui::Button("保存（CTRL + S）")) {
-        saveCommand();
+        glfwInfo.save();
       }
 
       ImGui::Text("現在フレームレート： %.3f ms/frame (%.1f FPS)", 1000.0f / ge.GetIO().Framerate, ge.GetIO().Framerate);
