@@ -43,8 +43,7 @@ namespace db {
     vector<ShaderData> out;
 
     sqlite::Stmt stmt(db.GetDB());
-    string sql = "SELECT id, name, description FROM shaders ORDER BY updated_at DESC;";
-    stmt.Prepare(sql);
+    stmt.Prepare("SELECT id, name, description FROM shaders ORDER BY updated_at DESC;");
 
     while (stmt.Step() == SQLITE_ROW) {
       ShaderData data;
@@ -54,35 +53,33 @@ namespace db {
 
       {
         sqlite::Stmt codeStmt(db.GetDB());
-        string codeSql = "SELECT id, code FROM vertex_shader WHERE shader_id = ? LIMIT 1;";
-        codeStmt.Prepare(codeSql);
+        codeStmt.Prepare("SELECT id, code_type, code, filename FROM shader_code WHERE shader_id = ?;");
         codeStmt.BindInt(1, data.id);
-        if (codeStmt.Step() == SQLITE_ROW) {
-          data.vertexShader.id = codeStmt.ColumnInt(0);
-          data.vertexShader.code = codeStmt.ColumnText(1);
-        }
-      }
 
-      {
+        while (codeStmt.Step() == SQLITE_ROW) {
+          u32 id = codeStmt.ColumnInt(0);
+          ShaderCodeType type = static_cast<ShaderCodeType>(codeStmt.ColumnInt(1));
+          string code = codeStmt.ColumnText(2);
+          string filename = codeStmt.ColumnText(3);
 
-        sqlite::Stmt codeStmt(db.GetDB());
-        string codeSql = "SELECT id, code FROM fragment_shader WHERE shader_id = ? LIMIT 1;";
-        codeStmt.Prepare(codeSql);
-        codeStmt.BindInt(1, data.id);
-        if (codeStmt.Step() == SQLITE_ROW) {
-          data.fragmentShader.id = codeStmt.ColumnInt(0);
-          data.fragmentShader.code = codeStmt.ColumnText(1);
-        }
-      }
-
-      {
-        sqlite::Stmt codeStmt(db.GetDB());
-        string codeSql = "SELECT id, code FROM lua_code WHERE shader_id = ? LIMIT 1;";
-        codeStmt.Prepare(codeSql);
-        codeStmt.BindInt(1, data.id);
-        if (codeStmt.Step() == SQLITE_ROW) {
-          data.luaCode.id = codeStmt.ColumnInt(0);
-          data.luaCode.code = codeStmt.ColumnText(1);
+          if (type == ShaderCodeType::GlslVertex) {
+            data.vertexShader.id = id;
+            data.vertexShader.type = type;
+            data.vertexShader.code = code;
+            data.vertexShader.filename = filename;
+          } else if (type == ShaderCodeType::GlslFragment) {
+            data.fragmentShader.id = id;
+            data.fragmentShader.type = type;
+            data.fragmentShader.code = code;
+            data.fragmentShader.filename = filename;
+          } else if (type == ShaderCodeType::Lua) {
+            data.luaCode.id = id;
+            data.luaCode.type = type;
+            data.luaCode.code = code;
+            data.luaCode.filename = filename;
+          } else {
+            throw std::exception("未対応コード類。");
+          }
         }
       }
 
@@ -92,13 +89,13 @@ namespace db {
     return out;
   }
 
-  void SaveCode(sqlite::Instance &db, u32 id, const string &code, const string &table) {
+  void SaveCode(sqlite::Instance &db, const CodeData &data) {
     sqlite::Stmt stmt(db.GetDB());
-    string sql = "UPDATE " + table + " SET code = ? WHERE id = ?;";
-    stmt.Prepare(sql);
+    stmt.Prepare("UPDATE shader_code SET code = ?, filename = ? WHERE id = ?;");
 
-    stmt.BindText(1, code);
-    stmt.BindInt(2, id);
+    stmt.BindText(1, data.code);
+    stmt.BindText(2, data.filename);
+    stmt.BindInt(3, data.id);
 
     assert(stmt.Step() == SQLITE_DONE && "コードの保存に失敗。\n");
   }

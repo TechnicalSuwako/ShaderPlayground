@@ -35,6 +35,7 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #pragma once
 
 #include <util/types.hh>
+#include <database/setup.hh>
 
 namespace sqlite {
   class Instance;
@@ -43,7 +44,9 @@ namespace sqlite {
 namespace db {
   struct CodeData {
     u32 id = 0;
+    ShaderCodeType type = ShaderCodeType::Default;
     string code = "";
+    string filename = "";
   };
 
   struct ShaderData {
@@ -56,5 +59,5 @@ namespace db {
   };
 
   vector<ShaderData> GetAllShaders(sqlite::Instance &db);
-  void SaveCode(sqlite::Instance &db, u32 id, const string &code, const string &table);
+  void SaveCode(sqlite::Instance &db, const CodeData &data);
 } // namespace db

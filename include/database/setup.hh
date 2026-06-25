@@ -39,6 +39,13 @@ namespace sqlite {
 } // namespace sqlite
 
 namespace db {
+  enum class ShaderCodeType {
+    Default = 0,
+    Lua = 1,
+    GlslVertex = 2,
+    GlslFragment = 3,
+  };
+
   // 初期設定。
   // 既に存在したら、見逃す。
   void Initialize(sqlite::Instance &db);

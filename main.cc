@@ -82,7 +82,7 @@ int main(void) {
 
   // GLADを初期化
   if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-    std::cout << "GLADの初期化に失敗しました" << std::endl;
+    std::cerr << "GLADの初期化に失敗しました" << std::endl;
     return -1;
   }
 
@@ -103,36 +103,36 @@ int main(void) {
   vector<db::ShaderData> codeMap = db::GetAllShaders(db);
   u32 shaderId;
   string shaderName;
-  string VERT = "";
-  string FRAG = "";
-  string LUA = "";
+  db::CodeData VERT = {};
+  db::CodeData FRAG = {};
+  db::CodeData LUA = {};
 
   for (const auto &c : codeMap) {
     shaderId = c.id;
     shaderName = c.name;
-    VERT = c.vertexShader.code;
-    FRAG = c.fragmentShader.code;
-    LUA = c.luaCode.code;
+    VERT = c.vertexShader;
+    FRAG = c.fragmentShader;
+    LUA = c.luaCode;
   }
 
   string title = shaderName + "（頂点シェーダー）";
-  gui::Editor vertEditor(title, "VertexEditor", VERT, gui::Glsl, ge.GetCjkFont(), ge.GetMonoFont());
+  gui::Editor vertEditor(title, "VertexEditor", VERT.code, gui::Glsl, ge.GetCjkFont(), ge.GetMonoFont());
 
   title = shaderName + "（フラグメントシェーダー）";
-  gui::Editor fragEditor(title, "FragmentEditor", FRAG, gui::Glsl, ge.GetCjkFont(), ge.GetMonoFont());
+  gui::Editor fragEditor(title, "FragmentEditor", FRAG.code, gui::Glsl, ge.GetCjkFont(), ge.GetMonoFont());
 
   title = shaderName + "（Luaエディター）";
-  gui::Editor luaEditor(title, "LuaEditor", LUA, gui::Lua, ge.GetCjkFont(), ge.GetMonoFont());
+  gui::Editor luaEditor(title, "LuaEditor", LUA.code, gui::Lua, ge.GetCjkFont(), ge.GetMonoFont());
 
   // シェーダーをコンパイル
-  Shader vertexShader(VERT, GL_VERTEX_SHADER);
-  Shader fragmentShader(FRAG, GL_FRAGMENT_SHADER);
+  Shader vertexShader(VERT.code, GL_VERTEX_SHADER);
+  Shader fragmentShader(FRAG.code, GL_FRAGMENT_SHADER);
 
   // シェーダープログラムをリンク
   Program shaderProgram(vertexShader, fragmentShader);
 
   // 頂点データはLuaから受け取る
-  lua::LuaEngine luaEngine(LUA, &shaderProgram, &cmd);
+  lua::LuaEngine luaEngine(LUA.code, &shaderProgram, &cmd);
   auto &mesh = luaEngine.GetMesh();
 
   VertexArrays VAO(1);
@@ -156,14 +156,14 @@ int main(void) {
   // メインレンダリングループ
   while (!window.ShouldClose()) {
     auto compileCommand = [&]() {
-      VERT = vertEditor.Get().GetText();
-      FRAG = fragEditor.Get().GetText();
-      LUA = luaEditor.Get().GetText();
+      VERT.code = vertEditor.Get().GetText();
+      FRAG.code = fragEditor.Get().GetText();
+      LUA.code = luaEditor.Get().GetText();
 
       try {
-        shaderProgram.Reload(VERT, FRAG);
+        shaderProgram.Reload(VERT.code, FRAG.code);
         luaEngine.SetProgram(&shaderProgram);
-        luaEngine.Reload(LUA);
+        luaEngine.Reload(LUA.code);
         {
           lua::LuaMesh newMesh = luaEngine.GetMesh();
 
@@ -205,13 +205,13 @@ int main(void) {
     };
 
     auto saveCommand = [&]() {
-      VERT = vertEditor.Get().GetText();
-      FRAG = fragEditor.Get().GetText();
-      LUA = luaEditor.Get().GetText();
+      VERT.code = vertEditor.Get().GetText();
+      FRAG.code = fragEditor.Get().GetText();
+      LUA.code = luaEditor.Get().GetText();
 
-      db::SaveCode(db, shaderId, VERT, "vertex_shader");
-      db::SaveCode(db, shaderId, FRAG, "fragment_shader");
-      db::SaveCode(db, shaderId, LUA, "lua_code");
+      db::SaveCode(db, VERT);
+      db::SaveCode(db, FRAG);
+      db::SaveCode(db, LUA);
 
       gui::LogEntry entry;
       entry.type = gui::LogType::Info;

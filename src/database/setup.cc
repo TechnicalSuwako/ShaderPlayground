@@ -42,8 +42,7 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace db {
   void Initialize(sqlite::Instance &db) {
-    cstr sql = R"(
-CREATE TABLE IF NOT EXISTS version (
+    cstr sql = R"(CREATE TABLE IF NOT EXISTS version (
   id          INTEGER PRIMARY KEY,
   major       INTEGER NOT NULL,
   minor       INTEGER NOT NULL,
@@ -78,60 +77,25 @@ BEGIN
   WHERE id = NEW.id;
 END;
 
-CREATE TABLE IF NOT EXISTS vertex_shader (
+CREATE TABLE IF NOT EXISTS shader_code (
   id          INTEGER PRIMARY KEY,
   shader_id   INTEGER NOT NULL,
+  code_type   INTEGER NOT NULL,
   code        TEXT NOT NULL,
+  filename    TEXT,
   created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
 
   FOREIGN KEY (shader_id) REFERENCES shaders(id) ON DELETE CASCADE
 );
 
-CREATE TRIGGER IF NOT EXISTS vertex_shader_updated_at
-AFTER UPDATE ON vertex_shader
+CREATE TRIGGER IF NOT EXISTS shader_code_updated_at
+AFTER UPDATE ON shader_code
 BEGIN
-  UPDATE vertex_shader 
+  UPDATE shader_code
   SET updated_at = CURRENT_TIMESTAMP 
   WHERE id = NEW.id;
-END;
-
-CREATE TABLE IF NOT EXISTS fragment_shader (
-  id          INTEGER PRIMARY KEY,
-  shader_id   INTEGER NOT NULL,
-  code        TEXT NOT NULL,
-  created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
-  updated_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
-
-  FOREIGN KEY (shader_id) REFERENCES shaders(id) ON DELETE CASCADE
-);
-
-CREATE TRIGGER IF NOT EXISTS fragment_shader_updated_at
-AFTER UPDATE ON fragment_shader
-BEGIN
-  UPDATE fragment_shader 
-  SET updated_at = CURRENT_TIMESTAMP 
-  WHERE id = NEW.id;
-END;
-
-CREATE TABLE IF NOT EXISTS lua_code (
-  id          INTEGER PRIMARY KEY,
-  shader_id   INTEGER NOT NULL,
-  code        TEXT NOT NULL,
-  created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
-  updated_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
-
-  FOREIGN KEY (shader_id) REFERENCES shaders(id) ON DELETE CASCADE
-);
-
-CREATE TRIGGER IF NOT EXISTS lua_code_updated_at
-AFTER UPDATE ON lua_code
-BEGIN
-  UPDATE lua_code 
-  SET updated_at = CURRENT_TIMESTAMP 
-  WHERE id = NEW.id;
-END;
-)";
+END;)";
     
     db.Exec(sql);
 
@@ -146,10 +110,7 @@ END;
 
     {
       sqlite::Stmt stmt(db.GetDB());
-      string s = R"(
-  INSERT INTO version (major, minor, revision) VALUES (?, ?, ?);
-)";
-      stmt.Prepare(s);
+      stmt.Prepare("INSERT INTO version (major, minor, revision) VALUES (?, ?, ?);");
       stmt.BindInt(1, version::major);
       stmt.BindInt(2, version::minor);
       stmt.BindInt(3, version::revision);
@@ -161,10 +122,7 @@ END;
 
     {
       sqlite::Stmt stmt(db.GetDB());
-      string s = R"(
-  INSERT INTO shaders (name, description) VALUES (?, ?);
-)";
-      stmt.Prepare(s);
+      stmt.Prepare("INSERT INTO shaders (name, description) VALUES (?, ?);");
       stmt.BindText(1, "default");
       stmt.BindText(2, "");
       assert(stmt.Step() == SQLITE_DONE && "最初のシェーダーを入れ込みに失敗。\n");
@@ -173,36 +131,33 @@ END;
 
     {
       sqlite::Stmt stmt(db.GetDB());
-      string s = R"(
-  INSERT INTO vertex_shader (shader_id, code) VALUES (?, ?);
-)";
-      stmt.Prepare(s);
+      stmt.Prepare("INSERT INTO shader_code (shader_id, code_type, code, filename) VALUES (?, ?, ?, ?);");
       stmt.BindInt(1, shaderId);
-      stmt.BindText(2, GetDefaultVertexShader());
+      stmt.BindInt(2, static_cast<int>(db::ShaderCodeType::GlslVertex));
+      stmt.BindText(3, GetDefaultVertexShader());
+      stmt.BindText(4, "default.vert");
 
       assert(stmt.Step() == SQLITE_DONE && "最初のシェーダーを入れ込みに失敗。\n");
     }
 
     {
       sqlite::Stmt stmt(db.GetDB());
-      string s = R"(
-  INSERT INTO fragment_shader (shader_id, code) VALUES (?, ?);
-)";
-      stmt.Prepare(s);
+      stmt.Prepare("INSERT INTO shader_code (shader_id, code_type, code, filename) VALUES (?, ?, ?, ?);");
       stmt.BindInt(1, shaderId);
-      stmt.BindText(2, GetDefaultFragmentShader());
+      stmt.BindInt(2, static_cast<int>(db::ShaderCodeType::GlslFragment));
+      stmt.BindText(3, GetDefaultFragmentShader());
+      stmt.BindText(4, "default.frag");
 
       assert(stmt.Step() == SQLITE_DONE && "最初のシェーダーを入れ込みに失敗。\n");
     }
 
     {
       sqlite::Stmt stmt(db.GetDB());
-      string s = R"(
-  INSERT INTO lua_code (shader_id, code) VALUES (?, ?);
-)";
-      stmt.Prepare(s);
+      stmt.Prepare("INSERT INTO shader_code (shader_id, code_type, code, filename) VALUES (?, ?, ?, ?);");
       stmt.BindInt(1, shaderId);
-      stmt.BindText(2, GetDefaultLuaCode());
+      stmt.BindInt(2, static_cast<int>(db::ShaderCodeType::Lua));
+      stmt.BindText(3, GetDefaultLuaCode());
+      stmt.BindText(4, "default.lua");
 
       assert(stmt.Step() == SQLITE_DONE && "最初のシェーダーを入れ込みに失敗。\n");
     }
