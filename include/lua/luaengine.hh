@@ -35,6 +35,7 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #pragma once
 
 #include <util/types.hh>
+#include <util/structs.hh>
 #define SOL_LUAJIT 1
 #define SOL_ALL_SAFETIES_ON 1
 #include <sol.hpp>
@@ -62,7 +63,7 @@ namespace lua {
 
   class LuaEngine {
     public:
-      LuaEngine(const string &code, Program *prog, gui::ConsoleLog *cmd = nullptr);
+      LuaEngine(const string &code, Program *prog, GlfwInfo *glfwInfo, gui::ConsoleLog *cmd = nullptr);
       ~LuaEngine();
 
     public:
@@ -85,6 +86,7 @@ namespace lua {
       sol::state MakeAPI();
       void BindEngine(sol::state &lua);
       void BindSystem(sol::state &lua);
+      void BindIO(sol::state &lua);
       void BindGraphics(sol::state &lua);
       void Execute(sol::state &lua);
 
@@ -94,6 +96,8 @@ namespace lua {
       string m_Code;
       Program *m_Program = nullptr;
       gui::ConsoleLog *m_Console = nullptr;
+      GlfwInfo *m_GlfwInfo = {};
       string m_ApiVersion = "1.0.0";
+      f32 m_LastTime = 0.f;
   };
 } // namespace lua

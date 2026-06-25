@@ -14,7 +14,7 @@ set(BUILD_SHARED_LIBS OFF CACHE BOOL "静的リンク" FORCE)
 
 if(MSVC) 
   set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-  add_compile_options(/utf-8)
+  add_compile_options(/utf-8 /bigobj)
 endif()
 
 set(DB_NAME "shaderplayground.db" CACHE STRING "データベースのパス" FORCE)

@@ -32,30 +32,41 @@ HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTIO
 CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-#pragma once
+#include <util/random.hh>
+#include <cmath>
 
-#include <util/types.hh>
+namespace util::rand {
+  u32 randState[4];
+  static inline u32 randLeftRot(const u32 x, i32 k) {
+    return (x << k) | (x >> (32 - k));
+  }
 
-namespace gui {
-  enum class LogType {
-    Normal,
-    Info,
-    Warning,
-    Error,
-  };
+  u32 randXoshiro128() {
+    const u32 res = randLeftRot(randState[1] * 5, 7) * 9;
+    const u32 t = randState[1] << 9;
 
-  struct LogEntry {
-    LogType type;
-    string text;
-  };
+    randState[2] ^= randState[0];
+    randState[3] ^= randState[1];
+    randState[1] ^= randState[2];
+    randState[0] ^= randState[3];
 
-  class ConsoleLog {
-    public:
-      void Add(LogEntry entry);
-      void Draw(cstr title = "コンソール");
-      void Clear();
+    randState[2] ^= t;
+    randState[3] = randLeftRot(randState[3], 11);
 
-    private:
-      vector<LogEntry> m_Lines;
-  };
-} // namespace gui
+    return res;
+  }
+
+  i32 randGetValue(i32 min, i32 max) {
+    return randXoshiro128() % (abs(max - min) + 1) + min;
+  }
+  
+  i32 GetRandom(i32 min, i32 max) {
+    if (min > max) {
+      i32 tmp = max;
+      max = min;
+      min = tmp;
+    }
+
+    return randGetValue(min, max);
+  }
+} // namespace util::rand

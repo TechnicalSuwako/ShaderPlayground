@@ -39,6 +39,7 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <util/types.hh>
 #include <util/vector.hh>
 #include <util/sqlite.hh>
+#include <util/structs.hh>
 #include <shader/shader.hh>
 #include <shader/buffers.hh>
 #include <database/setup.hh>
@@ -75,6 +76,8 @@ int main(void) {
   glfwpp::Window window((windowWidth * mainScale), (windowHeight * mainScale), winName);
   window.MakeContextCurrent();
   glfw.SwapInterval(1);
+
+  GlfwInfo glfwInfo = { &glfw, &window };
 
 #ifndef PRODUCTION_BUILD
   bool showDemo = true;
@@ -132,7 +135,7 @@ int main(void) {
   Program shaderProgram(vertexShader, fragmentShader);
 
   // 頂点データはLuaから受け取る
-  lua::LuaEngine luaEngine(LUA.code, &shaderProgram, &cmd);
+  lua::LuaEngine luaEngine(LUA.code, &shaderProgram, &glfwInfo, &cmd);
   auto &mesh = luaEngine.GetMesh();
 
   VertexArrays VAO(1);
@@ -195,7 +198,7 @@ int main(void) {
           EBO.BindBuffer();
           EBO.BufferData(
             newMesh.indices.data(),
-            newMesh.indices.size() * sizeof(f32)
+            newMesh.indices.size() * sizeof(u32)
           );
 
           for (const auto &a : newMesh.attr) {

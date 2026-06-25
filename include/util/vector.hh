@@ -37,121 +37,244 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "types.hh"
 
-typedef union {
-  struct {
+union Vector2 {
+  struct Position {
     f32 x;
     f32 y;
   };
-  struct {
+  struct UV {
     f32 u;
     f32 v;
   };
-} Vector2;
 
-typedef union {
-  struct {
+  Position pos;
+  UV uv;
+};
+
+union Vector2f {
+  struct Position {
+    f32 x;
+    f32 y;
+  };
+  struct UV {
+    f32 u;
+    f32 v;
+  };
+
+  Position pos;
+  UV uv;
+};
+
+union Vector2d {
+  struct Position {
+    f64 x;
+    f64 y;
+  };
+  struct UV {
+    f64 u;
+    f64 v;
+  };
+
+  Position pos;
+  UV uv;
+};
+
+union Vector2i {
+  struct Position {
     i32 x;
     i32 y;
   };
-  struct {
+  struct UV {
     i32 u;
     i32 v;
   };
-} Vector2i;
 
-typedef union {
-  struct {
+  Position pos;
+  UV uv;
+};
+
+union Vector2u {
+  struct Position {
     u32 x;
     u32 y;
   };
-  struct {
+  struct UV {
     u32 u;
     u32 v;
   };
-} Vector2u;
 
-typedef union {
-  struct {
+  Position pos;
+  UV uv;
+};
+
+union Vector3 {
+  struct Position {
     f32 x;
     f32 y;
     f32 z;
   };
-  struct {
+  struct RGB {
     f32 r;
     f32 g;
     f32 b;
   };
-} Vector3;
 
-typedef union {
-  struct {
+  Position pos;
+  RGB rgb;
+};
+
+union Vector3f {
+  struct Position {
+    f32 x;
+    f32 y;
+    f32 z;
+  };
+  struct RGB {
+    f32 r;
+    f32 g;
+    f32 b;
+  };
+
+  Position pos;
+  RGB rgb;
+};
+
+union Vector3d {
+  struct Position {
+    f64 x;
+    f64 y;
+    f64 z;
+  };
+  struct RGB {
+    f64 r;
+    f64 g;
+    f64 b;
+  };
+
+  Position pos;
+  RGB rgb;
+};
+
+union Vector3i {
+  struct Position {
     i32 x;
     i32 y;
     i32 z;
   };
-  struct {
+  struct RGB {
     i32 r;
     i32 g;
     i32 b;
   };
-} Vector3i;
 
-typedef union {
-  struct {
+  Position pos;
+  RGB rgb;
+};
+
+union Vector3u {
+  struct Position {
     u32 x;
     u32 y;
     u32 z;
   };
-  struct {
+  struct RGB {
     u32 r;
     u32 g;
     u32 b;
   };
-} Vector3u;
 
-typedef union {
-  struct {
+  Position pos;
+  RGB rgb;
+};
+
+union Vector4 {
+  struct Position {
     f32 x;
     f32 y;
     f32 z;
     f32 w;
   };
-  struct {
+  struct RGBA {
     f32 r;
     f32 g;
     f32 b;
     f32 a;
   };
-} Vector4;
 
-typedef union {
-  struct {
+  Position pos;
+  RGBA rgba;
+};
+
+union Vector4f {
+  struct Position {
+    f32 x;
+    f32 y;
+    f32 z;
+    f32 w;
+  };
+  struct RGBA {
+    f32 r;
+    f32 g;
+    f32 b;
+    f32 a;
+  };
+
+  Position pos;
+  RGBA rgba;
+};
+
+union Vector4d {
+  struct Position {
+    f64 x;
+    f64 y;
+    f64 z;
+    f64 w;
+  };
+  struct RGBA {
+    f64 r;
+    f64 g;
+    f64 b;
+    f64 a;
+  };
+
+  Position pos;
+  RGBA rgba;
+};
+
+union Vector4i {
+  struct Position {
     i32 x;
     i32 y;
     i32 z;
     i32 w;
   };
-  struct {
+  struct RGBA {
     i32 r;
     i32 g;
     i32 b;
     i32 a;
   };
-} Vector4i;
 
-typedef union {
-  struct {
+  Position pos;
+  RGBA rgba;
+};
+
+union Vector4u {
+  struct Position {
     u32 x;
     u32 y;
     u32 z;
     u32 w;
   };
-  struct {
+  struct RGBA {
     u32 r;
     u32 g;
     u32 b;
     u32 a;
   };
-} Vector4u;
+
+  Position pos;
+  RGBA rgba;
+};
 
 #endif

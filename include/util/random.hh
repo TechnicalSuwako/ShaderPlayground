@@ -32,30 +32,13 @@ HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTIO
 CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-#pragma once
+#ifndef RANDOM_HH
+#define RANDOM_HH
 
 #include <util/types.hh>
 
-namespace gui {
-  enum class LogType {
-    Normal,
-    Info,
-    Warning,
-    Error,
-  };
+namespace util::rand {
+  i32 GetRandom(i32 min, i32 max);
+} // namespace util::rand
 
-  struct LogEntry {
-    LogType type;
-    string text;
-  };
-
-  class ConsoleLog {
-    public:
-      void Add(LogEntry entry);
-      void Draw(cstr title = "コンソール");
-      void Clear();
-
-    private:
-      vector<LogEntry> m_Lines;
-  };
-} // namespace gui
+#endif // RANDOM_HH

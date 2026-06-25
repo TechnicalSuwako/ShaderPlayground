@@ -188,6 +188,7 @@ namespace glfwpp {
       bool ShouldClose() const;
       void SwapBuffers();
 
+      void GetSize(int *w, int *h);
       void SetClipboardString(string str);
       string GetClipboardString();
       void MakeContextCurrent();

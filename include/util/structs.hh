@@ -34,28 +34,9 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 #pragma once
 
-#include <util/types.hh>
+#include <util/glfwpp.hh>
 
-namespace gui {
-  enum class LogType {
-    Normal,
-    Info,
-    Warning,
-    Error,
-  };
-
-  struct LogEntry {
-    LogType type;
-    string text;
-  };
-
-  class ConsoleLog {
-    public:
-      void Add(LogEntry entry);
-      void Draw(cstr title = "コンソール");
-      void Clear();
-
-    private:
-      vector<LogEntry> m_Lines;
-  };
-} // namespace gui
+struct GlfwInfo {
+  glfwpp::Instance *instance;
+  glfwpp::Window *window;
+};

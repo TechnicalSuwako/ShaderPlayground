@@ -157,6 +157,10 @@ namespace glfwpp {
     glfwSwapBuffers(m_Window);
   }
 
+  void Window::GetSize(int *w, int *h) {
+    glfwGetWindowSize(m_Window, w, h);
+  }
+
   void Window::SetClipboardString(string str) {
     glfwSetClipboardString(m_Window, str.c_str());
   }
@@ -182,7 +186,7 @@ namespace glfwpp {
   }
 
   int Window::RawMouseMotionSupported() {
-    return RawMouseMotionSupported();
+    return glfwRawMouseMotionSupported();
   }
 
   cstr Window::GetKeyName(int key, int scancode) {
