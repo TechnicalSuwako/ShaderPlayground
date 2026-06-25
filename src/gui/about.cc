@@ -40,7 +40,7 @@ namespace gui {
     if (!glfw.isAbout) return;
 
     ImGuiWindowFlags flags = 0;
-    ImGui::SetNextWindowSize({800, 600}, ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize({400, 300}, ImGuiCond_Appearing);
     ImGui::Begin("Shader Playgroundについて", &glfw.isAbout, flags);
     string name = "Shader Playground " + glfw.version;
     string copyright = "© 2026 - ０７６スタジオ合同会社";

@@ -38,6 +38,7 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <util/types.hh>
 
 namespace util::rand {
+  void Seed(u32 seed);
   i32 GetRandom(i32 min, i32 max);
 } // namespace util::rand
 

@@ -40,6 +40,7 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <util/vector.hh>
 #include <util/sqlite.hh>
 #include <util/structs.hh>
+#include <util/random.hh>
 #include <shader/shader.hh>
 #include <shader/buffers.hh>
 #include <database/setup.hh>
@@ -57,6 +58,7 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <backends/imgui_impl_opengl3.h>
 
 #include <sol.hpp>
+#include <chrono>
 
 constexpr int windowWidth = 1280;
 constexpr int windowHeight = 720;
@@ -70,7 +72,11 @@ int main(void) {
   glfw.SetContextMinorVersion(6);
   glfw.SetOpenGLProfile(glfwpp::Attributes::OpenGLCore);
   glfw.SetForwardCompatibility(true);
+  glfw.SetMaximized(true);
   glfw.CreateWindowHints();
+
+  u32 seed = static_cast<u32>(std::chrono::high_resolution_clock::now().time_since_epoch().count());
+  util::rand::Seed(seed);
 
   // ウィンドウを作成
   string winName = sofname + " " + version::full;

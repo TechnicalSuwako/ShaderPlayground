@@ -153,6 +153,7 @@ namespace glfwpp {
       void SetContextMinorVersion(int minor);
       void SetOpenGLProfile(int profile);
       void SetForwardCompatibility(bool fc);
+      void SetMaximized(bool fc);
 
       void CreateWindowHints();
       void PollEvents();
@@ -175,6 +176,7 @@ namespace glfwpp {
       int m_Minor = 0;
       int m_Profile = 0;
       bool m_ForwardCompat = false;
+      bool m_IsMaximized = false;
   }; // class Instance
 
   class Window {
@@ -189,6 +191,7 @@ namespace glfwpp {
       void SwapBuffers();
 
       void GetSize(int *w, int *h);
+      void Maximize();
       void SetClipboardString(string str);
       string GetClipboardString();
       void MakeContextCurrent();

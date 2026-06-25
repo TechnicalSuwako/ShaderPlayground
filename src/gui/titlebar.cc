@@ -98,7 +98,7 @@ namespace gui {
       dock_right = ImGui::DockBuilderSplitNode(
         dock_main,
         ImGuiDir_Right,
-        0.45f,
+        0.35f,
         nullptr,
         &dock_main
       );

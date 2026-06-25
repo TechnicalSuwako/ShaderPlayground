@@ -34,15 +34,17 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 #include <util/random.hh>
 #include <cmath>
+#include <chrono>
 
 namespace util::rand {
   u32 randState[4];
-  static inline u32 randLeftRot(const u32 x, i32 k) {
+
+  static inline u32 leftRot(const u32 x, i32 k) {
     return (x << k) | (x >> (32 - k));
   }
 
-  u32 randXoshiro128() {
-    const u32 res = randLeftRot(randState[1] * 5, 7) * 9;
+  u32 xoshiro128() {
+    const u32 res = leftRot(randState[1] * 5, 7) * 9;
     const u32 t = randState[1] << 9;
 
     randState[2] ^= randState[0];
@@ -51,13 +53,27 @@ namespace util::rand {
     randState[0] ^= randState[3];
 
     randState[2] ^= t;
-    randState[3] = randLeftRot(randState[3], 11);
+    randState[3] = leftRot(randState[3], 11);
 
     return res;
   }
 
-  i32 randGetValue(i32 min, i32 max) {
-    return randXoshiro128() % (abs(max - min) + 1) + min;
+  i32 getValue(i32 min, i32 max) {
+    u32 range = static_cast<u32>(max - min + 1);
+    return min + (xoshiro128() % range);
+  }
+
+  static u32 splitmix32(u32 &x) {
+    u32 z = (x += 0x9e3779b9);
+    z = (z ^ (z >> 16)) * 0x85ebca6b;
+    z = (z ^ (z >> 13)) * 0xc2b2ae35;
+    return z ^ (z >> 16);
+  }
+  
+  //////////////////////
+
+  void Seed(u32 seed) {
+    for (int i = 0; i < 4; i++) randState[i] = splitmix32(seed);
   }
   
   i32 GetRandom(i32 min, i32 max) {
@@ -67,6 +83,6 @@ namespace util::rand {
       min = tmp;
     }
 
-    return randGetValue(min, max);
+    return getValue(min, max);
   }
 } // namespace util::rand

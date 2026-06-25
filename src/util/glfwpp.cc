@@ -71,11 +71,16 @@ namespace glfwpp {
     m_ForwardCompat = fc;
   }
 
+  void Instance::SetMaximized(bool fc) {
+    m_IsMaximized = fc;
+  }
+
   void Instance::CreateWindowHints() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, m_Major);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, m_Minor);
     glfwWindowHint(GLFW_OPENGL_PROFILE, m_Profile);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, m_ForwardCompat);
+    glfwWindowHint(GLFW_MAXIMIZED, m_IsMaximized);
   }
 
   void Instance::PollEvents() {
@@ -159,6 +164,10 @@ namespace glfwpp {
 
   void Window::GetSize(int *w, int *h) {
     glfwGetWindowSize(m_Window, w, h);
+  }
+
+  void Window::Maximize() {
+    glfwMaximizeWindow(m_Window);
   }
 
   void Window::SetClipboardString(string str) {
