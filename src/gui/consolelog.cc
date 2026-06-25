@@ -41,7 +41,7 @@ namespace gui {
   }
 
   void ConsoleLog::Draw(cstr title) {
-    ImGui::Begin(title);
+    ImGui::Begin((string(title) + "###Console").c_str());
     if (ImGui::Button("消す")) Clear();
     ImGui::Separator();
     for (const auto &line : m_Lines) {

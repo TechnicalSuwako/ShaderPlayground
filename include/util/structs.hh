@@ -35,12 +35,19 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #pragma once
 
 #include <util/glfwpp.hh>
+#include <version.hh>
 #include <functional>
+#include <string>
 
 struct GlfwInfo {
   glfwpp::Instance *instance;
   glfwpp::Window *window;
+
   bool isRunning = true;
+  bool isAbout = false;
+
+  std::string version = version::full;
+
   std::function<void()> compile;
   std::function<void()> save;
 };

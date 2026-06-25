@@ -33,16 +33,88 @@ CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFT
 OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 #include <gui/titlebar.hh>
+#include <gui/about.hh>
 
 #include <imgui.h>
+#include <imgui_internal.h>
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
+#include <ctime>
 
 namespace gui {
   void showTitleBar(GlfwInfo &glfw) {
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
+
+    ImGuiWindowFlags window_flags =
+      ImGuiWindowFlags_MenuBar |
+      ImGuiWindowFlags_NoDocking;
+
+    const ImGuiViewport *viewport = ImGui::GetMainViewport();
+    ImGui::SetNextWindowPos(viewport->WorkPos);
+    ImGui::SetNextWindowSize(viewport->WorkSize);
+    ImGui::SetNextWindowViewport(viewport->ID);
+
+    window_flags |= ImGuiWindowFlags_NoTitleBar;
+    window_flags |= ImGuiWindowFlags_NoCollapse;
+    window_flags |= ImGuiWindowFlags_NoResize;
+    window_flags |= ImGuiWindowFlags_NoMove;
+    window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus;
+    window_flags |= ImGuiWindowFlags_NoNavFocus;
+
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+
+    ImGui::Begin("MainDockSpace", nullptr, window_flags);
+
+    ImGui::PopStyleVar(2);
+
+    ImGuiID dockspace_id = ImGui::GetID("DockSpace");
+    ImGui::DockSpace(dockspace_id);
+
+    static bool firstLayout = true;
+    if (firstLayout) {
+      firstLayout = false;
+
+      ImGui::DockBuilderRemoveNode(dockspace_id);
+      ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace);
+
+      const ImGuiViewport *viewport = ImGui::GetMainViewport();
+      ImGui::DockBuilderSetNodeSize(dockspace_id, viewport->Size);
+
+      ImGuiID dock_main = dockspace_id;
+      ImGuiID dock_right = 0;
+      ImGuiID dock_bottom = 0;
+
+      dock_bottom = ImGui::DockBuilderSplitNode(
+        dock_main,
+        ImGuiDir_Down,
+        0.25f,
+        nullptr,
+        &dock_main
+      );
+
+      dock_right = ImGui::DockBuilderSplitNode(
+        dock_main,
+        ImGuiDir_Right,
+        0.45f,
+        nullptr,
+        &dock_main
+      );
+
+      ImGui::DockBuilderDockWindow("View", dock_main);
+
+      ImGui::DockBuilderDockWindow("VertexEditor", dock_right);
+      ImGui::DockBuilderDockWindow("FragmentEditor", dock_right);
+      ImGui::DockBuilderDockWindow("LuaEditor", dock_right);
+
+      ImGui::DockBuilderDockWindow("Console", dock_bottom);
+
+      ImGui::DockBuilderFinish(dockspace_id);
+    }
+
+    ImGui::End();
 
     if (ImGui::BeginMainMenuBar()) {
       if (ImGui::BeginMenu("ファイル")) {
@@ -92,7 +164,9 @@ namespace gui {
 
       if (ImGui::BeginMenu("ヘルプ")) {
         if (ImGui::MenuItem("マニュアル", "F1")) {}
-        if (ImGui::MenuItem("Shader Playgroundについて", "F12")) {}
+        if (ImGui::MenuItem("Shader Playgroundについて", "CTRL+H")) {
+          glfw.isAbout = true;
+        }
         ImGui::EndMenu();
       }
 
@@ -101,6 +175,20 @@ namespace gui {
         if (ImGui::MenuItem("English")) {}
         ImGui::EndMenu();
       }
+
+      ImGui::SameLine();
+
+      f32 rightW = ImGui::GetContentRegionAvail().x;
+      ImGui::SetCursorPosX(ImGui::GetCursorPosX() + rightW - 400.f);
+      ImGui::Text("現在フレームレート： %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+
+      ImGui::SameLine();
+      char timeBuf[64];
+      time_t now = time(nullptr);
+      tm *local = localtime(&now);
+      strftime(timeBuf, sizeof(timeBuf), "%Y年%m月日%d日 %H:%M:%S", local);
+      ImGui::Text(" | %s", timeBuf);
+
       ImGui::EndMainMenuBar();
     }
   }

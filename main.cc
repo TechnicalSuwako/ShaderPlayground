@@ -48,6 +48,8 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <gui/guiengine.hh>
 #include <gui/titlebar.hh>
 #include <gui/editor.hh>
+#include <gui/viewport.hh>
+#include <gui/about.hh>
 #include <gui/consolelog.hh>
 
 #include <imgui.h>
@@ -77,7 +79,7 @@ int main(void) {
   window.MakeContextCurrent();
   glfw.SwapInterval(1);
 
-  GlfwInfo glfwInfo = { &glfw, &window, true };
+  GlfwInfo glfwInfo = { &glfw, &window, true, false };
 
 #ifndef PRODUCTION_BUILD
   bool showDemo = true;
@@ -97,10 +99,19 @@ int main(void) {
 
   // データベースが未だ存在しなければ、初期設定
   sqlite::Instance db;
-  db::Initialize(db);
+  try {
+    db::Initialize(db);
+  } catch (const std::exception &e) {
+    std::cerr << e.what() << std::endl;
+    return -1;
+  }
 
   // コンソール
   gui::ConsoleLog cmd;
+
+  // ビューポート
+  gui::ViewPort viewport;
+  viewport.Init();
 
   // データベースからシェーダーとLuaコードの受け取り
   vector<db::ShaderData> codeMap = db::GetAllShaders(db);
@@ -119,13 +130,13 @@ int main(void) {
   }
 
   string title = shaderName + "（頂点シェーダー）";
-  gui::Editor vertEditor(title, "VertexEditor", VERT.code, gui::Glsl, ge.GetCjkFont(), ge.GetMonoFont());
+  gui::Editor vertEditor((title + "###VertexEditor").c_str(), "VertexEditor", VERT.code, gui::Glsl, ge.GetCjkFont(), ge.GetMonoFont());
 
   title = shaderName + "（フラグメントシェーダー）";
-  gui::Editor fragEditor(title, "FragmentEditor", FRAG.code, gui::Glsl, ge.GetCjkFont(), ge.GetMonoFont());
+  gui::Editor fragEditor((title + "###FragmentEditor").c_str(), "FragmentEditor", FRAG.code, gui::Glsl, ge.GetCjkFont(), ge.GetMonoFont());
 
   title = shaderName + "（Luaエディター）";
-  gui::Editor luaEditor(title, "LuaEditor", LUA.code, gui::Lua, ge.GetCjkFont(), ge.GetMonoFont());
+  gui::Editor luaEditor((title + "###LuaEditor").c_str(), "LuaEditor", LUA.code, gui::Lua, ge.GetCjkFont(), ge.GetMonoFont());
 
   // シェーダーをコンパイル
   Shader vertexShader(VERT.code, GL_VERTEX_SHADER);
@@ -155,6 +166,7 @@ int main(void) {
   }
 
   bool isHold = false;
+  gui::About about;
 
   // メインレンダリングループ
   while (!window.ShouldClose() && glfwInfo.isRunning) {
@@ -267,10 +279,15 @@ int main(void) {
     bool ctrlMod = (window.GetKey(GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS || window.GetKey(GLFW_KEY_RIGHT_CONTROL) == GLFW_PRESS);
     bool isSaveKey = (window.GetKey(GLFW_KEY_S) == GLFW_PRESS && ctrlMod);
     bool isQuitKey = (window.GetKey(GLFW_KEY_Q) == GLFW_PRESS && ctrlMod);
+    bool isAboutKey = (window.GetKey(GLFW_KEY_H) == GLFW_PRESS && ctrlMod);
 
     if (!isHold) {
       if (isCompileKey) {
         glfwInfo.compile();
+      }
+
+      if (isAboutKey) {
+        glfwInfo.isAbout = true;
       }
 
       if (isSaveKey) {
@@ -282,7 +299,7 @@ int main(void) {
       }
     }
 
-    isHold = isSaveKey || isCompileKey;
+    isHold = isSaveKey || isCompileKey || isAboutKey || isQuitKey;
 
     if (window.GetAttrib(glfwpp::Attributes::Iconified) != 0) {
       ImGui_ImplGlfw_Sleep(10);
@@ -299,30 +316,15 @@ int main(void) {
     fragEditor.Render();
     luaEditor.Render();
     cmd.Draw();
+    about.Draw(glfwInfo);
 
-    {
-      static float f = 0.0f;
-      static int counter = 0;
-
-      ImGui::Begin("コントロール");
-
-      if (ImGui::Button("コンパイル（F5）")) {
-        glfwInfo.compile();
-      }
-
-      ImGui::SameLine();
-
-      if (ImGui::Button("保存（CTRL + S）")) {
-        glfwInfo.save();
-      }
-
-      ImGui::Text("現在フレームレート： %.3f ms/frame (%.1f FPS)", 1000.0f / ge.GetIO().Framerate, ge.GetIO().Framerate);
-      ImGui::End();
-    }
+    viewport.Draw(glfwInfo);
 
     ImGui::Render();
 
     // 画面をクリア
+    glBindFramebuffer(GL_FRAMEBUFFER, viewport.GetFBO());
+    glViewport(0, 0, viewport.GetWidth(), viewport.GetHeight());
     shaderProgram.ClearColor(0.f, 0.f, 0.f, 1.f);
     shaderProgram.Clear();
 
@@ -333,9 +335,19 @@ int main(void) {
     // クアッドを描画
     VAO.BindVertexArray();
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     // バッファをスワップし、イベントを処理
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+      GLFWwindow *backup_current_context = glfwGetCurrentContext();
+
+      ImGui::UpdatePlatformWindows();
+      ImGui::RenderPlatformWindowsDefault();
+
+      glfwMakeContextCurrent(backup_current_context);
+    }
+
     window.SwapBuffers();
   }
 
