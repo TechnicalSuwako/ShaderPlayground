@@ -33,25 +33,13 @@ CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFT
 OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 #include <glad/glad.h>
-#include <util/glfwpp.hh>
-#include <iostream>
+#include <util.hh>
+#include <shader.hh>
+#include <database.hh>
+#include <lua.hh>
+#include <gui.hh>
 #include <version.hh>
-#include <util/types.hh>
-#include <util/vector.hh>
-#include <util/sqlite.hh>
-#include <util/structs.hh>
-#include <util/random.hh>
-#include <shader/shader.hh>
-#include <shader/buffers.hh>
-#include <database/setup.hh>
-#include <database/shaderdata.hh>
-#include <lua/luaengine.hh>
-#include <gui/guiengine.hh>
-#include <gui/titlebar.hh>
-#include <gui/editor.hh>
-#include <gui/viewport.hh>
-#include <gui/about.hh>
-#include <gui/consolelog.hh>
+#include <iostream>
 
 #include <imgui.h>
 #include <backends/imgui_impl_glfw.h>
@@ -85,7 +73,7 @@ int main(void) {
   window.MakeContextCurrent();
   glfw.SwapInterval(1);
 
-  GlfwInfo glfwInfo = { &glfw, &window, true, false };
+  GlfwInfo glfwInfo = { &glfw, &window, true, false, false, false };
 
 #ifndef PRODUCTION_BUILD
   bool showDemo = true;
@@ -118,6 +106,9 @@ int main(void) {
   // ビューポート
   gui::ViewPort viewport;
   viewport.Init();
+
+  // マニュアル
+  gui::Manual manual;
 
   // データベースからシェーダーとLuaコードの受け取り
   vector<db::ShaderData> codeMap = db::GetAllShaders(db);
@@ -281,15 +272,25 @@ int main(void) {
 
     glfw.PollEvents();
 
+    bool isManualKey = window.GetKey(GLFW_KEY_F1);
     bool isCompileKey = window.GetKey(GLFW_KEY_F5);
     bool ctrlMod = (window.GetKey(GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS || window.GetKey(GLFW_KEY_RIGHT_CONTROL) == GLFW_PRESS);
     bool isSaveKey = (window.GetKey(GLFW_KEY_S) == GLFW_PRESS && ctrlMod);
     bool isQuitKey = (window.GetKey(GLFW_KEY_Q) == GLFW_PRESS && ctrlMod);
     bool isAboutKey = (window.GetKey(GLFW_KEY_H) == GLFW_PRESS && ctrlMod);
+    bool isSettingsKey = (window.GetKey(GLFW_KEY_COMMA) == GLFW_PRESS && ctrlMod);
 
     if (!isHold) {
       if (isCompileKey) {
         glfwInfo.compile();
+      }
+
+      if (isManualKey) {
+        glfwInfo.isManual = true;
+      }
+
+      if (isSettingsKey) {
+        glfwInfo.isSettings = true;
       }
 
       if (isAboutKey) {
@@ -305,7 +306,7 @@ int main(void) {
       }
     }
 
-    isHold = isSaveKey || isCompileKey || isAboutKey || isQuitKey;
+    isHold = isSaveKey || isCompileKey || isAboutKey || isQuitKey || isManualKey || isSettingsKey;
 
     if (window.GetAttrib(glfwpp::Attributes::Iconified) != 0) {
       ImGui_ImplGlfw_Sleep(10);
@@ -323,6 +324,7 @@ int main(void) {
     luaEditor.Render();
     cmd.Draw();
     about.Draw(glfwInfo);
+    manual.Draw(glfwInfo);
 
     viewport.Draw(glfwInfo);
 

@@ -151,7 +151,9 @@ namespace gui {
         if (ImGui::MenuItem("貼り付け", "Ctrl+V", false, false)) {}
         if (ImGui::MenuItem("行を複製", "Ctrl+D", false, false)) {}
         ImGui::Separator();
-        if (ImGui::MenuItem("設定", "Ctrl+,", false, false)) {}
+        if (ImGui::MenuItem("設定", "Ctrl+,", false, false)) {
+          glfw.isSettings = true;
+        }
         ImGui::EndMenu();
       }
 
@@ -163,14 +165,16 @@ namespace gui {
       }
 
       if (ImGui::BeginMenu("ヘルプ")) {
-        if (ImGui::MenuItem("マニュアル", "F1")) {}
+        if (ImGui::MenuItem("マニュアル", "F1")) {
+          glfw.isManual = true;
+        }
         if (ImGui::MenuItem("Shader Playgroundについて", "CTRL+H")) {
           glfw.isAbout = true;
         }
         ImGui::EndMenu();
       }
 
-      if (ImGui::BeginMenu("言語")) {
+      if (ImGui::BeginMenu("言語/Language")) {
         if (ImGui::MenuItem("日本語")) {}
         if (ImGui::MenuItem("English")) {}
         ImGui::EndMenu();

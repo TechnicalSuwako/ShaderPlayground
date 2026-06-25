@@ -45,6 +45,8 @@ struct GlfwInfo {
 
   bool isRunning = true;
   bool isAbout = false;
+  bool isManual = false;
+  bool isSettings = false;
 
   std::string version = version::full;
 
