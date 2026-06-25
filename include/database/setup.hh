@@ -1,4 +1,6 @@
 /*
+# 076 License
+
 Copyright (c) テクニカル諏訪子
 
 Permission is hereby granted to any person obtaining a copy of the software
@@ -34,9 +36,9 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 #pragma once
 
-namespace sqlite {
+namespace sqlitepp {
   class Instance;
-} // namespace sqlite
+} // namespace sqlitepp
 
 namespace db {
   enum class ShaderCodeType {
@@ -48,5 +50,5 @@ namespace db {
 
   // 初期設定。
   // 既に存在したら、見逃す。
-  void Initialize(sqlite::Instance &db);
+  void Initialize(sqlitepp::Instance &db);
 } // namespace db

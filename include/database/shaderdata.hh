@@ -1,4 +1,6 @@
 /*
+# 076 License
+
 Copyright (c) テクニカル諏訪子
 
 Permission is hereby granted to any person obtaining a copy of the software
@@ -37,9 +39,9 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <util/types.hh>
 #include <database/setup.hh>
 
-namespace sqlite {
+namespace sqlitepp {
   class Instance;
-} // namespace sqlite
+} // namespace sqlitepp
 
 namespace db {
   struct CodeData {
@@ -58,6 +60,6 @@ namespace db {
     CodeData luaCode = {};
   };
 
-  vector<ShaderData> GetAllShaders(sqlite::Instance &db);
-  void SaveCode(sqlite::Instance &db, const CodeData &data);
+  vector<ShaderData> GetAllShaders(sqlitepp::Instance &db);
+  void SaveCode(sqlitepp::Instance &db, const CodeData &data);
 } // namespace db

@@ -1,3 +1,5 @@
+# 076 License
+
 Copyright (c) テクニカル諏訪子
 
 Permission is hereby granted to any person obtaining a copy of the software

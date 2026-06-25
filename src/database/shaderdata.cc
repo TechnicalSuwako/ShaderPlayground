@@ -1,4 +1,6 @@
 /*
+# 076 License
+
 Copyright (c) テクニカル諏訪子
 
 Permission is hereby granted to any person obtaining a copy of the software
@@ -33,16 +35,16 @@ CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFT
 OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 #include <database/shaderdata.hh>
-#include <util/sqlite.hh>
+#include <util/sqlitepp.hh>
 #include <sqlite3.h>
 #include <iostream>
 #include <cassert>
 
 namespace db {
-  vector<ShaderData> GetAllShaders(sqlite::Instance &db) {
+  vector<ShaderData> GetAllShaders(sqlitepp::Instance &db) {
     vector<ShaderData> out;
 
-    sqlite::Stmt stmt(db.GetDB());
+    sqlitepp::Stmt stmt(db.GetDB());
     stmt.Prepare("SELECT id, name, description FROM shaders ORDER BY updated_at DESC;");
 
     while (stmt.Step() == SQLITE_ROW) {
@@ -52,7 +54,7 @@ namespace db {
       data.description = stmt.ColumnText(2);
 
       {
-        sqlite::Stmt codeStmt(db.GetDB());
+        sqlitepp::Stmt codeStmt(db.GetDB());
         codeStmt.Prepare("SELECT id, code_type, code, filename FROM shader_code WHERE shader_id = ?;");
         codeStmt.BindInt(1, data.id);
 
@@ -89,8 +91,8 @@ namespace db {
     return out;
   }
 
-  void SaveCode(sqlite::Instance &db, const CodeData &data) {
-    sqlite::Stmt stmt(db.GetDB());
+  void SaveCode(sqlitepp::Instance &db, const CodeData &data) {
+    sqlitepp::Stmt stmt(db.GetDB());
     stmt.Prepare("UPDATE shader_code SET code = ?, filename = ? WHERE id = ?;");
 
     stmt.BindText(1, data.code);

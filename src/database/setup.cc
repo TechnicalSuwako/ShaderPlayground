@@ -1,4 +1,6 @@
 /*
+# 076 License
+
 Copyright (c) テクニカル諏訪子
 
 Permission is hereby granted to any person obtaining a copy of the software
@@ -34,14 +36,14 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 #include <database/setup.hh>
 #include <shader/shader.hh>
-#include <util/sqlite.hh>
+#include <util/sqlitepp.hh>
 #include <sqlite3.h>
 #include <version.hh>
 #include <cassert>
 #include <iostream>
 
 namespace db {
-  void Initialize(sqlite::Instance &db) {
+  void Initialize(sqlitepp::Instance &db) {
     cstr sql = R"(CREATE TABLE IF NOT EXISTS version (
   id          INTEGER PRIMARY KEY,
   major       INTEGER NOT NULL,
@@ -100,7 +102,7 @@ END;)";
     db.Exec(sql);
 
     {
-      sqlite::Stmt stmt(db.GetDB());
+      sqlitepp::Stmt stmt(db.GetDB());
       stmt.Prepare("SELECT COUNT(*) FROM version;");
       if (stmt.Step() == SQLITE_ROW) {
         int count = stmt.ColumnInt(0);
@@ -109,7 +111,7 @@ END;)";
     }
 
     {
-      sqlite::Stmt stmt(db.GetDB());
+      sqlitepp::Stmt stmt(db.GetDB());
       stmt.Prepare("INSERT INTO version (major, minor, revision) VALUES (?, ?, ?);");
       stmt.BindInt(1, version::major);
       stmt.BindInt(2, version::minor);
@@ -121,7 +123,7 @@ END;)";
     i64 shaderId = 0;
 
     {
-      sqlite::Stmt stmt(db.GetDB());
+      sqlitepp::Stmt stmt(db.GetDB());
       stmt.Prepare("INSERT INTO shaders (name, description) VALUES (?, ?);");
       stmt.BindText(1, "default");
       stmt.BindText(2, "");
@@ -130,7 +132,7 @@ END;)";
     }
 
     {
-      sqlite::Stmt stmt(db.GetDB());
+      sqlitepp::Stmt stmt(db.GetDB());
       stmt.Prepare("INSERT INTO shader_code (shader_id, code_type, code, filename) VALUES (?, ?, ?, ?);");
       stmt.BindInt(1, shaderId);
       stmt.BindInt(2, static_cast<int>(db::ShaderCodeType::GlslVertex));
@@ -141,7 +143,7 @@ END;)";
     }
 
     {
-      sqlite::Stmt stmt(db.GetDB());
+      sqlitepp::Stmt stmt(db.GetDB());
       stmt.Prepare("INSERT INTO shader_code (shader_id, code_type, code, filename) VALUES (?, ?, ?, ?);");
       stmt.BindInt(1, shaderId);
       stmt.BindInt(2, static_cast<int>(db::ShaderCodeType::GlslFragment));
@@ -152,7 +154,7 @@ END;)";
     }
 
     {
-      sqlite::Stmt stmt(db.GetDB());
+      sqlitepp::Stmt stmt(db.GetDB());
       stmt.Prepare("INSERT INTO shader_code (shader_id, code_type, code, filename) VALUES (?, ?, ?, ?);");
       stmt.BindInt(1, shaderId);
       stmt.BindInt(2, static_cast<int>(db::ShaderCodeType::Lua));

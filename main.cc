@@ -1,4 +1,6 @@
 /*
+# 076 License
+
 Copyright (c) テクニカル諏訪子
 
 Permission is hereby granted to any person obtaining a copy of the software
@@ -92,7 +94,7 @@ int main(void) {
   window.SetFramebufferSizeCallback();
 
   // データベースが未だ存在しなければ、初期設定
-  sqlite::Instance db;
+  sqlitepp::Instance db;
   try {
     db::Initialize(db);
   } catch (const std::exception &e) {
