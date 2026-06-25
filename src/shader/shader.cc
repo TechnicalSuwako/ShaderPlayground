@@ -150,28 +150,28 @@ string GetDefaultLuaCode() {
   }
 }
 
-graphics.set_mesh(mesh)
+le.gfx.set_mesh(mesh)
 
 function update()
-  local t = graphics.get_time() -- glfwGetTime()
+  local t = le.sys.get_time() -- glfwGetTime()
   local speed = 1.0 -- animation speed
   local phase = math.pi * 2.0 / 3.0 -- 120 deg phase diff (3 color)
 
-  graphics.set_uniform3(
+  le.gfx.set_uniform3(
     "uColorA",
     math.sin(t * speed + 0.0) * 0.5 + 0.5,
     math.sin(t * speed + phase) * 0.5 + 0.5,
     math.sin(t * speed + phase * 2.0) * 0.5 + 0.5
   )
 
-  graphics.set_uniform3(
+  le.gfx.set_uniform3(
     "uColorB",
     math.sin(t * speed + phase * 2.0) * 0.5 + 0.5,
     math.sin(t * speed + 0.0) * 0.5 + 0.5,
     math.sin(t * speed + phase) * 0.5 + 0.5
   )
 
-  graphics.set_uniform3(
+  le.gfx.set_uniform3(
     "uColorC",
     math.sin(t * speed + phase) * 0.5 + 0.5,
     math.sin(t * speed + phase * 2.0) * 0.5 + 0.5,

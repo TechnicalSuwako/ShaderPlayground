@@ -161,6 +161,23 @@ int main(void) {
       LUA.code = luaEditor.Get().GetText();
 
       try {
+        try {
+          if (!luaEngine.Validate(LUA.code)) {
+            gui::LogEntry entry;
+            entry.type = gui::LogType::Error;
+            entry.text = "Luaコードが不正ですので、コンパイル出来ませんでした。";
+            cmd.Add(entry);
+            std::cout << entry.text << std::endl;
+            return;
+          }
+        } catch (const std::exception &e) {
+          gui::LogEntry entry;
+          entry.type = gui::LogType::Error;
+          entry.text = e.what();
+          cmd.Add(entry);
+          std::cout << entry.text << std::endl;
+        }
+
         shaderProgram.Reload(VERT.code, FRAG.code);
         luaEngine.SetProgram(&shaderProgram);
         luaEngine.Reload(LUA.code);
@@ -194,7 +211,11 @@ int main(void) {
           }
         }
       } catch (const std::exception &e) {
-        std::cerr << e.what() << std::endl;
+        gui::LogEntry entry;
+        entry.type = gui::LogType::Error;
+        entry.text = e.what();
+        cmd.Add(entry);
+        std::cerr << entry.text << std::endl;
       }
 
       gui::LogEntry entry;
@@ -208,6 +229,23 @@ int main(void) {
       VERT.code = vertEditor.Get().GetText();
       FRAG.code = fragEditor.Get().GetText();
       LUA.code = luaEditor.Get().GetText();
+
+      try {
+        if (!luaEngine.Validate(LUA.code)) {
+          gui::LogEntry entry;
+          entry.type = gui::LogType::Error;
+          entry.text = "Luaコードが不正ですので、保存出来ませんでした。";
+          cmd.Add(entry);
+          std::cout << entry.text << std::endl;
+          return;
+        }
+      } catch (const std::exception &e) {
+        gui::LogEntry entry;
+        entry.type = gui::LogType::Error;
+        entry.text = e.what();
+        cmd.Add(entry);
+        std::cout << entry.text << std::endl;
+      }
 
       db::SaveCode(db, VERT);
       db::SaveCode(db, FRAG);

@@ -65,16 +65,28 @@ namespace lua {
       LuaEngine(const string &code, Program *prog, gui::ConsoleLog *cmd = nullptr);
       ~LuaEngine();
 
+    public:
       LuaMesh &GetMesh() { return m_Mesh; };
       const LuaMesh &GetMesh() const { return m_Mesh; };
+
+    public:
       void Reload(const string &code);
       void Update();
+      bool Validate(const string &code);
+
+    public:
       void SetProgram(Program *prog) { m_Program = prog; }
       void SetConsole(gui::ConsoleLog *cmd) { m_Console = cmd; }
+      string GetApiVersion() const { return m_ApiVersion; }
 
     private:
-      void BindGraphics();
-      void Execute();
+      void LogError(sol::error err);
+      void LogError(const std::exception &err);
+      sol::state MakeAPI();
+      void BindEngine(sol::state &lua);
+      void BindSystem(sol::state &lua);
+      void BindGraphics(sol::state &lua);
+      void Execute(sol::state &lua);
 
     private:
       LuaMesh m_Mesh;
@@ -82,5 +94,6 @@ namespace lua {
       string m_Code;
       Program *m_Program = nullptr;
       gui::ConsoleLog *m_Console = nullptr;
+      string m_ApiVersion = "1.0.0";
   };
 } // namespace lua

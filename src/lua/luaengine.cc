@@ -44,23 +44,14 @@ namespace lua {
     , m_Program(prog)
     , m_Console(cmd)
   {
-    m_Lua.open_libraries(
-      sol::lib::base,
-      sol::lib::math,
-      sol::lib::table,
-      sol::lib::string
-    );
-
-    BindGraphics();
-    Execute();
+    m_Lua = MakeAPI();
   }
 
-  LuaEngine::~LuaEngine() {
-  }
+  LuaEngine::~LuaEngine() {}
 
   void LuaEngine::Reload(const string &code) {
     m_Code = code;
-    Execute();
+    Execute(m_Lua);
   }
 
   void LuaEngine::Update() {
@@ -70,19 +61,93 @@ namespace lua {
 
       if (!res.valid()) {
         sol::error err = res;
-        gui::LogEntry entry = {};
-        entry.type = gui::LogType::Error;
-        entry.text = err.what();
-        if (m_Console) m_Console->Add(entry);
-        else std::cerr << err.what() << std::endl;
+        LogError(err);
       }
     }
   }
 
-  void LuaEngine::BindGraphics() {
-    m_Lua["graphics"] = m_Lua.create_table();
+  bool LuaEngine::Validate(const string &code) {
+    try {
+      sol::load_result resSyntax = m_Lua.load(code);
+      if (!resSyntax.valid()) {
+        sol::error err = resSyntax;
+        LogError(err);
+        return false;
+      }
 
-    m_Lua["graphics"]["set_mesh"] = [&](sol::table t) {
+      sol::state testApi = MakeAPI();
+      sol::protected_function_result resApi = testApi.safe_script(code);
+      if (!resApi.valid()) {
+        sol::error err = resApi;
+        LogError(err);
+        return false;
+      }
+
+      return true;
+    } catch (const sol::error &err) {
+      LogError(err);
+      return false;
+    }
+  }
+
+  ////////////////////
+
+  void LuaEngine::LogError(sol::error err) {
+    gui::LogEntry entry = {};
+    entry.type = gui::LogType::Error;
+    entry.text = err.what();
+    if (m_Console) m_Console->Add(entry);
+    else std::cerr << err.what() << std::endl;
+  }
+
+  void LuaEngine::LogError(const std::exception &err) {
+    gui::LogEntry entry = {};
+    entry.type = gui::LogType::Error;
+    entry.text = err.what();
+    if (m_Console) m_Console->Add(entry);
+    else std::cerr << err.what() << std::endl;
+  }
+
+  sol::state LuaEngine::MakeAPI() {
+    sol::state out;
+
+    out.open_libraries(
+      sol::lib::base,
+      sol::lib::math,
+      sol::lib::table,
+      sol::lib::string
+    );
+
+    try {
+      BindEngine(out);
+      BindSystem(out);
+      BindGraphics(out);
+      Execute(out);
+    } catch (const std::exception &e) {
+      LogError(e);
+      return {};
+    }
+
+    return out;
+  }
+
+  void LuaEngine::BindEngine(sol::state &lua) {
+    lua["le"] = lua.create_table();
+    lua["le"]["api_version"] = m_ApiVersion;
+  }
+
+  void LuaEngine::BindSystem(sol::state &lua) {
+    lua["le"]["sys"] = lua.create_table();
+
+    lua["le"]["sys"]["get_time"] = [&]() -> f32 {
+      return (f32)glfwGetTime();
+    };
+  }
+
+  void LuaEngine::BindGraphics(sol::state &lua) {
+    lua["le"]["gfx"] = lua.create_table();
+
+    lua["le"]["gfx"]["set_mesh"] = [&](sol::table t) {
       m_Mesh.vertices.clear();
       m_Mesh.indices.clear();
       m_Mesh.attr.clear();
@@ -97,6 +162,15 @@ namespace lua {
       for (auto &k : attrs) {
         sol::table a = k.second;
 
+        sol::optional<int> location = a["location"];
+        sol::optional<int> size = a["size"];
+        sol::optional<int> stride = a["stride"];
+        sol::optional<int> offset = a["offset"];
+
+        if (!location || !size || !stride || !offset) {
+          throw std::runtime_error("メッシュアトリビュートが不正です。");
+        }
+
         m_Mesh.attr.push_back({
           a["location"],
           a["size"],
@@ -106,26 +180,18 @@ namespace lua {
       }
     };
 
-    m_Lua["graphics"]["get_time"] = [&]() -> f32 {
-      return (f32)glfwGetTime();
-    };
-
-    m_Lua["graphics"]["set_uniform3"] = [&](const string &name, f32 x, f32 y, f32 z) {
+    lua["le"]["gfx"]["set_uniform3"] = [&](const string &name, f32 x, f32 y, f32 z) {
       if (!m_Program) return;
       glUniform3f(m_Program->GetUniformLocation(name), x, y, z);
     };
   }
 
-  void LuaEngine::Execute() {
-    sol::protected_function_result res = m_Lua.safe_script(m_Code);
+  void LuaEngine::Execute(sol::state &lua) {
+    sol::protected_function_result res = lua.safe_script(m_Code);
 
     if (!res.valid()) {
       sol::error err = res;
-      gui::LogEntry entry = {};
-      entry.type = gui::LogType::Error;
-      entry.text = err.what();
-      if (m_Console) m_Console->Add(entry);
-      else std::cerr << err.what() << std::endl;
+      LogError(err);
     }
   }
 } // namespace lua
