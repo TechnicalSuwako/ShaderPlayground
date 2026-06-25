@@ -34,6 +34,8 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 #include <gui/guiengine.hh>
 #include <util/glfwpp.hh>
+#include "../../ass/NotoSansCJKjp-Regular.h"
+#include "../../ass/NotoMono-Regular.h"
 
 namespace gui {
   GuiEngine::GuiEngine(glfwpp::Window *window) {
@@ -42,8 +44,15 @@ namespace gui {
     ImGui::CreateContext();
     ImGuiIO &io = ImGui::GetIO();
     (void)io;
-    m_CjkFont = io.Fonts->AddFontFromFileTTF("NotoSansCJKjp-Regular.otf", 16.f, nullptr, io.Fonts->GetGlyphRangesJapanese());
-    m_MonoFont = io.Fonts->AddFontFromFileTTF("NotoMono-Regular.ttf", 16.f, nullptr, io.Fonts->GetGlyphRangesJapanese());
+
+    ImFontConfig cfg;
+    cfg.FontDataOwnedByAtlas = false;
+
+    m_CjkFont = io.Fonts->AddFontFromMemoryTTF(__NotoSansCJKjp_Regular_otf, __NotoSansCJKjp_Regular_otf_len, 16.f, &cfg, io.Fonts->GetGlyphRangesJapanese());
+    m_MonoFont = io.Fonts->AddFontFromMemoryTTF(__NotoMono_Regular_ttf, __NotoMono_Regular_ttf_len, 16.f, &cfg, io.Fonts->GetGlyphRangesJapanese());
+    //m_CjkFont = io.Fonts->AddFontFromFileTTF("NotoSansCJKjp-Regular.otf", 16.f, nullptr, io.Fonts->GetGlyphRangesJapanese());
+    //m_MonoFont = io.Fonts->AddFontFromFileTTF("NotoMono-Regular.ttf", 16.f, nullptr, io.Fonts->GetGlyphRangesJapanese());
+
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
