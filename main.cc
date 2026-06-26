@@ -177,6 +177,7 @@ int main(void) {
   while (!window.ShouldClose() && info.isRunning) {
 #pragma region Lambda
     info.compile = [&]() {
+      if (luaEngine.GetInitializationState()) luaEngine.SetInitializationState(false);
       info.VERT.code = vertEditor.Get().GetText();
       info.FRAG.code = fragEditor.Get().GetText();
       info.LUA.code = luaEditor.Get().GetText();
@@ -337,7 +338,7 @@ int main(void) {
 
       gui::LogEntry entry;
       entry.type = gui::LogType::Info;
-      entry.text = info.i18n->GetWord("consoleloginfocreateok") + ", ID: " + std::to_string(info.shaderId);
+      entry.text = info.i18n->GetWord("consoleloginfocreateok");
       info.cmd->Add(entry);
       std::cout << entry.text << std::endl;
     };
@@ -442,6 +443,7 @@ int main(void) {
 
     // シェーダープログラムを使用
     shaderProgram.Use();
+    luaEngine.Init();
     luaEngine.Update();
 
     // クアッドを描画

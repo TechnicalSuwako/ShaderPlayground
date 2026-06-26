@@ -74,11 +74,14 @@ namespace lua {
 
     public:
       void Reload(const string &code);
+      void Init();
       void Update();
       bool Validate(const string &code);
 
     public:
       void SetProgram(Program *prog) { m_Program = prog; }
+      bool GetInitializationState() const { return m_IsInitialized; }
+      void SetInitializationState(bool state) { m_IsInitialized = state; }
       string GetApiVersion() const { return m_ApiVersion; }
 
     private:
@@ -95,6 +98,7 @@ namespace lua {
       LuaMesh m_Mesh;
       sol::state m_Lua;
       string m_Code;
+      bool m_IsInitialized = false;
       Program *m_Program = nullptr;
       Info *m_Info = {};
       string m_ApiVersion = "1.0.0";

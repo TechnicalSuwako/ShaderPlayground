@@ -109,6 +109,9 @@ void main() {
 }
   
 le.gfx.set_mesh(mesh)
+
+function init()
+end
   
 function update()
 end)";

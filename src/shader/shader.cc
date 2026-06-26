@@ -154,6 +154,11 @@ string GetDefaultLuaCode() {
 
 le.gfx.set_mesh(mesh)
 
+function init()
+  le.log("screen res: ", le.sys.get_resolution())
+  le.log("random: ", le.sys.random(2, 200))
+end
+
 function update()
   local t = le.sys.get_time() -- glfwGetTime()
   local speed = 1.0 -- animation speed

@@ -62,7 +62,25 @@ namespace lua {
     Execute(m_Lua);
   }
 
+  void LuaEngine::Init() {
+    if (m_IsInitialized) return;
+
+    sol::function init = m_Lua["init"];
+    if (init.valid()) {
+      sol::protected_function_result res = init();
+
+      if (!res.valid()) {
+        sol::error err = res;
+        LogError(err);
+      }
+    }
+
+    m_IsInitialized = true;
+  }
+
   void LuaEngine::Update() {
+    if (!m_IsInitialized) return;
+
     sol::function update = m_Lua["update"];
     if (update.valid()) {
       sol::protected_function_result res = update();
