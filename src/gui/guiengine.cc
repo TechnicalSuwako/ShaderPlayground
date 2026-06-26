@@ -36,8 +36,8 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 #include <gui/guiengine.hh>
 #include <util/glfwpp.hh>
-#include "../../ass/NotoSansCJKjp-Regular.h"
-#include "../../ass/NotoMono-Regular.h"
+#include <NotoSansCJKjp-Regular.h>
+#include <NotoMono-Regular.h>
 
 namespace gui {
   GuiEngine::GuiEngine(glfwpp::Window *window) {

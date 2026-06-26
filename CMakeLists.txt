@@ -2,6 +2,32 @@ cmake_minimum_required(VERSION 3.14...3.28)
 
 project(shaderplayground LANGUAGES CXX VERSION 0.1.0)
 
+set(NOTOCJK_BINARY "${CMAKE_CURRENT_SOURCE_DIR}/ass/NotoSansCJKjp-Regular.otf")
+set(NOTOCJK_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/ass/NotoSansCJKjp-Regular.h")
+
+add_custom_command(
+  OUTPUT "${NOTOCJK_HEADER}"
+  COMMAND xxd -i -n __NotoSansCJKjp_Regular_otf "${NOTOCJK_BINARY}" > "${NOTOCJK_HEADER}"
+  DEPENDS "${NOTOCJK_BINARY}"
+  COMMENT "NotoSansCJKjp-Regular.hを作成中・・・"
+  VERBATIM
+)
+
+set(NOTOMONO_BINARY "${CMAKE_CURRENT_SOURCE_DIR}/ass/NotoMono-Regular.ttf")
+set(NOTOMONO_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/ass/NotoMono-Regular.h")
+
+add_custom_command(
+  OUTPUT "${NOTOMONO_HEADER}"
+  COMMAND xxd -i -n __NotoMono_Regular_ttf "${NOTOMONO_BINARY}" > "${NOTOMONO_HEADER}"
+  DEPENDS "${NOTOMONO_BINARY}"
+  COMMENT "NotoMono-Regular.hを作成中・・・"
+  VERBATIM
+)
+
+add_custom_target(generate_fonts
+  DEPENDS "${NOTOCJK_HEADER}" "${NOTOMONO_HEADER}"
+)
+
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "デバッグ又はリリース" FORCE)
 endif()
@@ -42,6 +68,7 @@ file(GLOB_RECURSE SHADERPLAYGROUND_SRC CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE
 file(GLOB_RECURSE SHADERPLAYGROUND_INC CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/include/*.hh")
 
 add_executable(shaderplayground main.cc ${SHADERPLAYGROUND_SRC} ${SHADERPLAYGROUND_INC})
+add_dependencies(shaderplayground generate_fonts)
 set_target_properties(shaderplayground PROPERTIES CXX_STANDARD 20)
 
 set(PLATFORM_LIBS "")
@@ -174,6 +201,7 @@ target_link_libraries(shaderplayground PRIVATE
 
 target_include_directories(shaderplayground PRIVATE
   "${CMAKE_CURRENT_SOURCE_DIR}/include"
+  "${CMAKE_CURRENT_SOURCE_DIR}/ass"
 )
 
 if(MSVC)
