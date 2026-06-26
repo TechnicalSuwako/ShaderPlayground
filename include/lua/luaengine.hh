@@ -65,7 +65,7 @@ namespace lua {
 
   class LuaEngine {
     public:
-      LuaEngine(const string &code, Program *prog, GlfwInfo *glfwInfo, gui::ConsoleLog *cmd = nullptr);
+      LuaEngine(const string &code, Program *prog, GlfwInfo *glfwInfo);
       ~LuaEngine();
 
     public:
@@ -79,7 +79,6 @@ namespace lua {
 
     public:
       void SetProgram(Program *prog) { m_Program = prog; }
-      void SetConsole(gui::ConsoleLog *cmd) { m_Console = cmd; }
       string GetApiVersion() const { return m_ApiVersion; }
 
     private:
@@ -97,7 +96,6 @@ namespace lua {
       sol::state m_Lua;
       string m_Code;
       Program *m_Program = nullptr;
-      gui::ConsoleLog *m_Console = nullptr;
       GlfwInfo *m_GlfwInfo = {};
       string m_ApiVersion = "1.0.0";
       f32 m_LastTime = 0.f;

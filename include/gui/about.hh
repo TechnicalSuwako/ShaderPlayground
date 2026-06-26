@@ -42,6 +42,6 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace gui {
   class About {
     public:
-    void Draw(GlfwInfo &glfw);
+      void Draw(GlfwInfo &glfw);
   }; // class About
 } // namespace gui

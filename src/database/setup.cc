@@ -234,8 +234,6 @@ CREATE TABLE IF NOT EXISTS settings (
       createWord(db, 2, "helpabout", "About Shader Playground");
       createWord(db, 1, "currentfps", "現在フレームレート");
       createWord(db, 2, "currentfps", "Current Frame Rate");
-      createWord(db, 1, "dateformat", "%Y年%m月%d日 %H:%M:%S");
-      createWord(db, 2, "dateformat", "%Y/%m/%d %H:%M:%S");
       createWord(db, 1, "consolelogerrorluainvalidcomp", "Luaコードが不正ですので、コンパイル出来ませんでした。");
       createWord(db, 2, "consolelogerrorluainvalidcomp", "Your Lua code is invalid, so it could not be compiled.");
       createWord(db, 1, "consolelogerrorluainvalidsave", "Luaコードが不正ですので、保存出来ませんでした。");
@@ -244,6 +242,8 @@ CREATE TABLE IF NOT EXISTS settings (
       createWord(db, 2, "consoleloginfocompileok", "Shaders got compiled successfully.");
       createWord(db, 1, "consoleloginfosaveok", "シェーダー及びLuaを保存しました。");
       createWord(db, 2, "consoleloginfosaveok", "Shaders and Lua have been saved.");
+      createWord(db, 1, "consoleloginfolangchangeok", "言語を変更しました。");
+      createWord(db, 2, "consoleloginfolangchangeok", "Language has been changed.");
     }
 
     i64 shaderId = 0;

@@ -35,12 +35,12 @@ CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFT
 OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 #include <gui/titlebar.hh>
-#include <gui/about.hh>
 
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
+#include <database/locale.hh>
 #include <ctime>
 
 namespace gui {
@@ -50,6 +50,7 @@ namespace gui {
     ImGui::NewFrame();
 
     ImGuiWindowFlags window_flags =
+      ImGuiWindowFlags_NoCollapse |
       ImGuiWindowFlags_MenuBar |
       ImGuiWindowFlags_NoDocking;
 
@@ -67,6 +68,9 @@ namespace gui {
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+
+    ImGui::GetIO().ConfigDockingWithShift = true;
+    ImGui::GetStyle().WindowMenuButtonPosition = ImGuiDir_None;
 
     ImGui::Begin("MainDockSpace", nullptr, window_flags);
 
@@ -153,7 +157,7 @@ namespace gui {
         if (ImGui::MenuItem(glfw.i18n->GetWord("editpaste").c_str(), "Ctrl+V", false, false)) {}
         if (ImGui::MenuItem(glfw.i18n->GetWord("editduplicate").c_str(), "Ctrl+D", false, false)) {}
         ImGui::Separator();
-        if (ImGui::MenuItem(glfw.i18n->GetWord("settings").c_str(), "Ctrl+,", false, false)) {
+        if (ImGui::MenuItem(glfw.i18n->GetWord("settings").c_str(), "Ctrl+,")) {
           glfw.isSettings = true;
         }
         ImGui::EndMenu();
@@ -176,31 +180,27 @@ namespace gui {
         ImGui::EndMenu();
       }
 
-      if (ImGui::BeginMenu("言語/Language")) {
-        if (ImGui::MenuItem("日本語")) {
-          glfw.i18n->SetLanguage(1);
-          glfw.isLangChange = true;
-        }
-        if (ImGui::MenuItem("English")) {
-          glfw.i18n->SetLanguage(2);
-          glfw.isLangChange = true;
-        }
-        ImGui::EndMenu();
-      }
-
       ImGui::SameLine();
 
-      f32 rightW = ImGui::GetContentRegionAvail().x;
-      ImGui::SetCursorPosX(ImGui::GetCursorPosX() + rightW - 400.f);
+      f32 side;
+      if (glfw.i18n->GetCurrentLanguage().code == "ja_JP") side = 379.f;
+      else side = 380.f;
+
+      ImGui::SetCursorPosX(ImGui::GetWindowWidth() - side);
+
       string fmt = glfw.i18n->GetWord("currentfps") + "： %.3f ms/frame (%.1f FPS)";
       ImGui::Text(fmt.c_str(), 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 
       ImGui::SameLine();
+      ImGui::Text(" | ");
+      ImGui::SameLine();
+
       char timeBuf[64];
       time_t now = time(nullptr);
       tm *local = localtime(&now);
-      strftime(timeBuf, sizeof(timeBuf), glfw.i18n->GetWord("dateformat").c_str(), local);
-      ImGui::Text(" | %s", timeBuf);
+
+      strftime(timeBuf, sizeof(timeBuf), "%Y/%m/%d %H:%M:%S", local);
+      ImGui::Text("%s", timeBuf);
 
       ImGui::EndMainMenuBar();
     }

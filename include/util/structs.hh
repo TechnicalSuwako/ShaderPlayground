@@ -37,10 +37,17 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #pragma once
 
 #include <util/glfwpp.hh>
-#include <database/locale.hh>
 #include <version.hh>
 #include <functional>
 #include <string>
+
+namespace gui {
+  class ConsoleLog;
+} // namespace gui
+
+namespace db {
+  class Locale;
+} // namespace db
 
 struct GlfwInfo {
   glfwpp::Instance *instance;
@@ -54,6 +61,7 @@ struct GlfwInfo {
 
   std::string version = version::full;
 
+  gui::ConsoleLog *cmd;
   db::Locale *i18n;
 
   std::function<void()> compile;

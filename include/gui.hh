@@ -43,4 +43,4 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <gui/about.hh>
 #include <gui/consolelog.hh>
 #include <gui/manual.hh>
-// #include <gui/settings.hh>
+ #include <gui/settings.hh>

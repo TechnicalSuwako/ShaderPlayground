@@ -37,6 +37,7 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <glad/glad.h>
 #include <gui/viewport.hh>
 #include <imgui.h>
+#include <database/locale.hh>
 
 namespace gui {
   void ViewPort::Init() {

@@ -37,6 +37,11 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #pragma once
 
 #include <util/types.hh>
+#include <util/structs.hh>
 
 namespace gui {
+  class Settings {
+    public:
+      void Draw(GlfwInfo &glfw);
+  }; // class Settings
 } // namespace gui

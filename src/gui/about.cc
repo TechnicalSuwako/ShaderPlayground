@@ -36,6 +36,7 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 #include <gui/about.hh>
 #include <imgui.h>
+#include <database/locale.hh>
 
 namespace gui {
   void About::Draw(GlfwInfo &glfw) {

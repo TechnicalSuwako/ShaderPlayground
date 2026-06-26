@@ -108,6 +108,7 @@ int main(void) {
 
   // コンソール
   gui::ConsoleLog cmd;
+  glfwInfo.cmd = &cmd;
 
   // ビューポート
   gui::ViewPort viewport;
@@ -149,7 +150,7 @@ int main(void) {
   Program shaderProgram(vertexShader, fragmentShader);
 
   // 頂点データはLuaから受け取る
-  lua::LuaEngine luaEngine(LUA.code, &shaderProgram, &glfwInfo, &cmd);
+  lua::LuaEngine luaEngine(LUA.code, &shaderProgram, &glfwInfo);
   auto &mesh = luaEngine.GetMesh();
 
   VertexArrays VAO(1);
@@ -170,6 +171,7 @@ int main(void) {
 
   bool isHold = false;
   gui::About about;
+  gui::Settings settings;
 
   // メインレンダリングループ
   while (!window.ShouldClose() && glfwInfo.isRunning) {
@@ -184,7 +186,7 @@ int main(void) {
             gui::LogEntry entry;
             entry.type = gui::LogType::Error;
             entry.text = glfwInfo.i18n->GetWord("consolelogerrorluainvalidcomp");
-            cmd.Add(entry);
+            glfwInfo.cmd->Add(entry);
             std::cerr << entry.text << std::endl;
             return;
           }
@@ -192,10 +194,10 @@ int main(void) {
           gui::LogEntry entry;
           entry.type = gui::LogType::Error;
           entry.text = e.what();
-          cmd.Add(entry);
+          glfwInfo.cmd->Add(entry);
           std::cerr << entry.text << std::endl;
           entry.text = glfwInfo.i18n->GetWord("consolelogerrorluainvalidcomp");
-          cmd.Add(entry);
+          glfwInfo.cmd->Add(entry);
           std::cerr << entry.text << std::endl;
           return;
         }
@@ -236,16 +238,16 @@ int main(void) {
         gui::LogEntry entry;
         entry.type = gui::LogType::Info;
         entry.text = glfwInfo.i18n->GetWord("consoleloginfocompileok");
-        cmd.Add(entry);
+        glfwInfo.cmd->Add(entry);
         std::cout << entry.text << std::endl;
       } catch (const std::exception &e) {
         gui::LogEntry entry;
         entry.type = gui::LogType::Error;
         entry.text = e.what();
-        cmd.Add(entry);
+        glfwInfo.cmd->Add(entry);
         std::cerr << entry.text << std::endl;
         entry.text = glfwInfo.i18n->GetWord("consolelogerrorluainvalidcomp");
-        cmd.Add(entry);
+        glfwInfo.cmd->Add(entry);
         std::cerr << entry.text << std::endl;
       }
     };
@@ -261,7 +263,7 @@ int main(void) {
             gui::LogEntry entry;
             entry.type = gui::LogType::Error;
             entry.text = glfwInfo.i18n->GetWord("consolelogerrorluainvalidsave");
-            cmd.Add(entry);
+            glfwInfo.cmd->Add(entry);
             std::cout << entry.text << std::endl;
             return;
           }
@@ -269,10 +271,10 @@ int main(void) {
           gui::LogEntry entry;
           entry.type = gui::LogType::Error;
           entry.text = e.what();
-          cmd.Add(entry);
+          glfwInfo.cmd->Add(entry);
           std::cout << entry.text << std::endl;
           entry.text = glfwInfo.i18n->GetWord("consolelogerrorluainvalidsave");
-          cmd.Add(entry);
+          glfwInfo.cmd->Add(entry);
           std::cout << entry.text << std::endl;
           return;
         }
@@ -284,16 +286,16 @@ int main(void) {
         gui::LogEntry entry;
         entry.type = gui::LogType::Info;
         entry.text = glfwInfo.i18n->GetWord("consoleloginfosaveok");
-        cmd.Add(entry);
+        glfwInfo.cmd->Add(entry);
         std::cout << entry.text << std::endl;
       } catch (const std::exception &e) {
         gui::LogEntry entry;
         entry.type = gui::LogType::Error;
         entry.text = e.what();
-        cmd.Add(entry);
+        glfwInfo.cmd->Add(entry);
         std::cout << entry.text << std::endl;
         entry.text = glfwInfo.i18n->GetWord("consolelogerrorluainvalidsave");
-        cmd.Add(entry);
+        glfwInfo.cmd->Add(entry);
         std::cout << entry.text << std::endl;
       }
     };
@@ -360,8 +362,9 @@ int main(void) {
     vertEditor.Render();
     fragEditor.Render();
     luaEditor.Render();
-    cmd.Draw(glfwInfo, glfwInfo.i18n->GetWord("editorconsole").c_str());
+    glfwInfo.cmd->Draw(glfwInfo, glfwInfo.i18n->GetWord("editorconsole").c_str());
     about.Draw(glfwInfo);
+    settings.Draw(glfwInfo);
     manual.Draw(glfwInfo);
 
     viewport.Draw(glfwInfo);

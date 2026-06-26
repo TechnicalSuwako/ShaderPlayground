@@ -37,7 +37,11 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #pragma once
 
 #include <util/types.hh>
-#include <util/structs.hh>
+
+struct GlfwInfo;
+namespace db {
+  class Locale;
+} // namespace db
 
 namespace gui {
   enum class LogType {

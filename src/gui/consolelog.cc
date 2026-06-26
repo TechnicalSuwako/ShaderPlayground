@@ -35,6 +35,8 @@ CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFT
 OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 #include <gui/consolelog.hh>
+#include <database/locale.hh>
+#include <util/structs.hh>
 #include <imgui.h>
 
 namespace gui {

@@ -36,9 +36,9 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 #include <gui/manual.hh>
 #include <imgui.h>
+#include <database/locale.hh>
 
 namespace gui {
-
   void Manual::Draw(GlfwInfo &glfw) {
     if (!glfw.isManual) return;
 

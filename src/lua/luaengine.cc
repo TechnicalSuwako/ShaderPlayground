@@ -39,16 +39,16 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <shader/shader.hh>
 #include <glfw/glfw3.h>
 #include <util/glfwpp.hh>
-#include <gui/consolelog.hh>
 #include <util/vector.hh>
 #include <util/random.hh>
+#include <database/locale.hh>
+#include <gui/consolelog.hh>
 
 namespace lua {
-  LuaEngine::LuaEngine(const string &code, Program *prog, GlfwInfo *glfwInfo, gui::ConsoleLog *cmd)
+  LuaEngine::LuaEngine(const string &code, Program *prog, GlfwInfo *glfwInfo)
     : m_Code(code)
     , m_Program(prog)
     , m_GlfwInfo(glfwInfo)
-    , m_Console(cmd)
   {
     m_Lua = MakeAPI();
     Execute(m_Lua);
@@ -105,16 +105,16 @@ namespace lua {
     gui::LogEntry entry = {};
     entry.type = gui::LogType::Error;
     entry.text = err.what();
-    if (m_Console) m_Console->Add(entry);
-    else std::cerr << err.what() << std::endl;
+    m_GlfwInfo->cmd->Add(entry);
+    std::cerr << err.what() << std::endl;
   }
 
   void LuaEngine::LogError(const std::exception &err) {
     gui::LogEntry entry = {};
     entry.type = gui::LogType::Error;
     entry.text = err.what();
-    if (m_Console) m_Console->Add(entry);
-    else std::cerr << err.what() << std::endl;
+    m_GlfwInfo->cmd->Add(entry);
+    std::cerr << err.what() << std::endl;
   }
 
   sol::state LuaEngine::MakeAPI() {
@@ -402,8 +402,8 @@ namespace lua {
       gui::LogEntry entry = {};
       entry.type = gui::LogType::Normal;
       entry.text = out;
-      if (m_Console) m_Console->Add(entry);
-      else std::cerr << entry.text << std::endl;
+      m_GlfwInfo->cmd->Add(entry); (entry);
+      std::cerr << entry.text << std::endl;
     };
   }
 
