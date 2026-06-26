@@ -45,12 +45,17 @@ namespace gui {
       NewShader(Info *info);
       ~NewShader();
 
-      db::ShaderData Make();
+      void DrawPopup();
+      db::ShaderData Make(bool is3D = false);
 
     private:
-      string getDefaultVert();
-      string getDefaultFrag();
-      string getDefaultLua();
+      string getDefaultVert2D();
+      string getDefaultFrag2D();
+      string getDefaultLua2D();
+
+      string getDefaultVert3D();
+      string getDefaultFrag3D();
+      string getDefaultLua3D();
 
     private:
       Info *m_Info;

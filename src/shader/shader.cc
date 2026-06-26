@@ -96,7 +96,7 @@ void Program::ClearColor(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha
 }
 
 void Program::Clear(GLbitfield mask) {
-  glClear(GL_COLOR_BUFFER_BIT);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 GLint Program::GetUniformLocation(string var) {

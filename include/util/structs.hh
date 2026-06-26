@@ -63,6 +63,8 @@ struct Info {
   bool isLangChange = false;
   bool isNewShader = false;
 
+  bool showNewShaderPopup = false;
+
   std::string version = version::full;
   uint32_t shaderId = 0;
   std::string shaderName = "";

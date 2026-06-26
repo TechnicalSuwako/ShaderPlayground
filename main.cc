@@ -87,6 +87,10 @@ int main(void) {
     return -1;
   }
 
+  // 3Dを有効
+  glEnable(GL_DEPTH_TEST);
+  //glEnable(GL_CULL_FACE);
+
   // ImGui設定
   gui::GuiEngine ge(&window);
 
@@ -205,10 +209,17 @@ int main(void) {
         }
 
         shaderProgram.Reload(info.VERT.code, info.FRAG.code);
+        shaderProgram.Use();
         luaEngine.SetProgram(&shaderProgram);
         luaEngine.Reload(info.LUA.code);
         {
           lua::LuaMesh newMesh = luaEngine.GetMesh();
+          if (newMesh.vertices.empty() || newMesh.indices.empty()) {
+            string msg;
+            if (info.i18n->GetCurrentLanguage().code == "ja_JP") msg = "メッシュデータが空です。";
+            else "Mesh data is empty.";
+            throw std::runtime_error(msg);
+          }
 
           VAO.BindVertexArray();
 
@@ -313,34 +324,79 @@ int main(void) {
     };
 
     info.create = [&]() {
-      gui::NewShader newShader(&info);
-      auto shdr = newShader.Make();
+      if (ImGui::BeginPopupModal(info.i18n->GetWord("filenewcreateshader").c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+        if (ImGui::Button(info.i18n->GetWord("filenew2dshader").c_str(), ImVec2(200, 0))) {
+          gui::NewShader newShader(&info);
+          auto shdr = newShader.Make(false);
+          info.shaderId = shdr.id;
+          info.shaderName = shdr.name;
+          info.VERT = shdr.vertexShader;
+          info.FRAG = shdr.fragmentShader;
+          info.LUA = shdr.luaCode;
 
-      info.shaderId = shdr.id;
-      info.shaderName = shdr.name;
-      info.VERT = shdr.vertexShader;
-      info.FRAG = shdr.fragmentShader;
-      info.LUA = shdr.luaCode;
+          vertEditor.SetCode(info.VERT.code);
+          string nTit = info.shaderName + "（" + info.i18n->GetWord("editorvertshader") + "）";
+          vertEditor.SetTitle(nTit + "###VertexEditor");
 
-      vertEditor.SetCode(info.VERT.code);
-      string nTit = info.shaderName + "（" + info.i18n->GetWord("editorvertshader") + "）";
-      vertEditor.SetTitle(nTit + "###VertexEditor");
+          fragEditor.SetCode(info.FRAG.code);
+          nTit = info.shaderName + "（" + info.i18n->GetWord("editorfragshader") + "）";
+          fragEditor.SetTitle(nTit + "###FragmentEditor");
 
-      fragEditor.SetCode(info.FRAG.code);
-      nTit = info.shaderName + "（" + info.i18n->GetWord("editorfragshader") + "）";
-      fragEditor.SetTitle(nTit + "###FragmentEditor");
+          luaEditor.SetCode(info.LUA.code);
+          nTit = info.shaderName + "（" + info.i18n->GetWord("editorlua") + "）";
+          luaEditor.SetTitle(nTit + "###LuaEditor");
 
-      luaEditor.SetCode(info.LUA.code);
-      nTit = info.shaderName + "（" + info.i18n->GetWord("editorlua") + "）";
-      luaEditor.SetTitle(nTit + "###LuaEditor");
+          info.compile();
 
-      info.compile();
+          gui::LogEntry entry;
+          entry.type = gui::LogType::Info;
+          entry.text = info.i18n->GetWord("consoleloginfocreateok");
+          info.cmd->Add(entry);
+          std::cout << entry.text << std::endl;
 
-      gui::LogEntry entry;
-      entry.type = gui::LogType::Info;
-      entry.text = info.i18n->GetWord("consoleloginfocreateok");
-      info.cmd->Add(entry);
-      std::cout << entry.text << std::endl;
+          ImGui::CloseCurrentPopup();
+        }
+
+        if (ImGui::Button(info.i18n->GetWord("filenew3dshader").c_str(), ImVec2(200, 0))) {
+          gui::NewShader newShader(&info);
+          auto shdr = newShader.Make(true);
+          info.shaderId = shdr.id;
+          info.shaderName = shdr.name;
+          info.VERT = shdr.vertexShader;
+          info.FRAG = shdr.fragmentShader;
+          info.LUA = shdr.luaCode;
+
+          vertEditor.SetCode(info.VERT.code);
+          string nTit = info.shaderName + "（" + info.i18n->GetWord("editorvertshader") + "）";
+          vertEditor.SetTitle(nTit + "###VertexEditor");
+
+          fragEditor.SetCode(info.FRAG.code);
+          nTit = info.shaderName + "（" + info.i18n->GetWord("editorfragshader") + "）";
+          fragEditor.SetTitle(nTit + "###FragmentEditor");
+
+          luaEditor.SetCode(info.LUA.code);
+          nTit = info.shaderName + "（" + info.i18n->GetWord("editorlua") + "）";
+          luaEditor.SetTitle(nTit + "###LuaEditor");
+
+          info.compile();
+
+          gui::LogEntry entry;
+          entry.type = gui::LogType::Info;
+          entry.text = info.i18n->GetWord("consoleloginfocreateok");
+          info.cmd->Add(entry);
+          std::cout << entry.text << std::endl;
+
+          ImGui::CloseCurrentPopup();
+        }
+
+        ImGui::Separator();
+
+        if (ImGui::Button(info.i18n->GetWord("cancel").c_str())) {
+          ImGui::CloseCurrentPopup();
+        }
+
+        ImGui::EndPopup();
+      }
     };
 #pragma endregion
 
@@ -367,7 +423,7 @@ int main(void) {
       }
 
       if (isNewKey) {
-        info.create();
+        info.showNewShaderPopup = true;
       }
 
       if (isOpenKey) {}
@@ -419,6 +475,13 @@ int main(void) {
 
     gui::showTitleBar(info);
 
+    if (info.showNewShaderPopup) {
+      ImGui::OpenPopup(info.i18n->GetWord("filenewcreateshader").c_str());
+      info.showNewShaderPopup = false;
+    }
+
+    info.create();
+
 #ifndef PRODUCTION_BUILD
     if (showDemo) ImGui::ShowDemoWindow(&showDemo);
 #endif
@@ -448,7 +511,7 @@ int main(void) {
 
     // クアッドを描画
     VAO.BindVertexArray();
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_TRIANGLES, mesh.GetIndexCount(), GL_UNSIGNED_INT, nullptr);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     // バッファをスワップし、イベントを処理

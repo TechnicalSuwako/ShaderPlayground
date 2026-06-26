@@ -61,6 +61,10 @@ namespace lua {
     };
 
     std::vector<Attribute> attr;
+
+    GLsizei GetIndexCount() const {
+      return static_cast<GLsizei>(indices.size());
+    }
   };
 
   class LuaEngine {
@@ -87,10 +91,12 @@ namespace lua {
     private:
       void LogError(sol::error err);
       void LogError(const std::exception &err);
+      void LogError(const string &err);
       sol::state MakeAPI();
       void BindEngine(sol::state &lua);
       void BindSystem(sol::state &lua);
       void BindIO(sol::state &lua);
+      void BindMath(sol::state &lua);
       void BindGraphics(sol::state &lua);
       void Execute(sol::state &lua);
 

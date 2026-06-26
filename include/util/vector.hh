@@ -24,7 +24,7 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #ifndef VECTOR_HH
 #define VECTOR_HH
 
-#include "types.hh"
+#include <util/types.hh>
 
 union Vector2 {
   struct Position {
@@ -265,5 +265,27 @@ union Vector4u {
   Position pos;
   RGBA rgba;
 };
+
+inline Vector3 vec3Sub(Vector3 a, Vector3 b) {
+  return { a.pos.x - b.pos.x, a.pos.y - b.pos.y, a.pos.z - b.pos.z };
+}
+
+inline f32 vec3Dot(Vector3 a, Vector3 b) {
+  return a.pos.x * b.pos.x + a.pos.y * b.pos.y + a.pos.z * b.pos.z;
+}
+
+inline Vector3 vec3Cross(Vector3 a, Vector3 b) {
+  return {
+    a.pos.y * b.pos.z - a.pos.z * b.pos.y,
+    a.pos.z * b.pos.x - a.pos.x * b.pos.z,
+    a.pos.x * b.pos.y - a.pos.y * b.pos.x,
+  };
+}
+
+inline Vector3 vec3Normalize(Vector3 v) {
+  f32 len = sqrtf(v.pos.x * v.pos.x + v.pos.y * v.pos.y + v.pos.z * v.pos.z);
+  if (len == 0.f) return { 0, 0, 0 };
+  return { v.pos.x / len, v.pos.y / len, v.pos.z / len };
+}
 
 #endif // VECTOR_HH

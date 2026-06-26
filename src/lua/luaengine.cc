@@ -40,6 +40,7 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <glfw/glfw3.h>
 #include <util/glfwpp.hh>
 #include <util/vector.hh>
+#include <util/matrix.hh>
 #include <util/random.hh>
 #include <database/locale.hh>
 #include <gui/consolelog.hh>
@@ -102,7 +103,7 @@ namespace lua {
       }
 
       sol::state testApi = MakeAPI();
-      sol::load_result resApi = m_Lua.load(code);
+      sol::load_result resApi = testApi.load(code);
       //sol::protected_function_result resApi = testApi.safe_script(code);
       if (!resApi.valid()) {
         sol::error err = resApi;
@@ -124,7 +125,7 @@ namespace lua {
     entry.type = gui::LogType::Error;
     entry.text = err.what();
     m_Info->cmd->Add(entry);
-    std::cerr << err.what() << std::endl;
+    std::cerr << entry.text << std::endl;
   }
 
   void LuaEngine::LogError(const std::exception &err) {
@@ -132,7 +133,15 @@ namespace lua {
     entry.type = gui::LogType::Error;
     entry.text = err.what();
     m_Info->cmd->Add(entry);
-    std::cerr << err.what() << std::endl;
+    std::cerr << entry.text << std::endl;
+  }
+
+  void LuaEngine::LogError(const string &err) {
+    gui::LogEntry entry = {};
+    entry.type = gui::LogType::Error;
+    entry.text = err;
+    m_Info->cmd->Add(entry);
+    std::cerr << entry.text << std::endl;
   }
 
   sol::state LuaEngine::MakeAPI() {
@@ -341,6 +350,7 @@ namespace lua {
       BindEngine(out);
       BindSystem(out);
       BindIO(out);
+      BindMath(out);
       BindGraphics(out);
     } catch (const std::exception &e) {
       LogError(e);
@@ -446,11 +456,7 @@ namespace lua {
 
       auto it = sizes.find(type);
       if (it == sizes.end()) {
-        gui::LogEntry entry = {};
-        entry.type = gui::LogType::Error;
-        entry.text = "不正な値類： " + type;
-        m_Info->cmd->Add(entry);
-        std::cerr << entry.text << std::endl;
+        LogError("不正な値類： " + type);
         return 0;
       }
 
@@ -502,6 +508,107 @@ namespace lua {
     };
   }
 
+  void LuaEngine::BindMath(sol::state &lua) {
+    lua["le"]["math"] = lua.create_table();
+
+    lua["le"]["math"]["identity"] = [](sol::this_state ts) -> sol::table {
+      sol::state_view lua(ts);
+      Matrix4 m = mat4Identity();
+      sol::table t = lua.create_table();
+      for (i32 i = 0; i < 16; ++i) t[i + 1] = m.m[i];
+      return t;
+    };
+
+    lua["le"]["math"]["translate"] = [](sol::this_state ts, f32 x, f32 y, f32 z) -> sol::table {
+      sol::state_view lua(ts);
+      Matrix4 m = mat4Translate(x, y, z);
+      sol::table t = lua.create_table();
+      for (i32 i = 0; i < 16; ++i) t[i + 1] = m.m[i];
+      return t;
+    };
+
+    lua["le"]["math"]["scale"] = [](sol::this_state ts, f32 x, f32 y, f32 z) -> sol::table {
+      sol::state_view lua(ts);
+      Matrix4 m = mat4Scale(x, y, z);
+      sol::table t = lua.create_table();
+      for (i32 i = 0; i < 16; ++i) t[i + 1] = m.m[i];
+      return t;
+    };
+
+    lua["le"]["math"]["rotate_x"] = [](sol::this_state ts, f32 angle) -> sol::table {
+      sol::state_view lua(ts);
+      Matrix4 m = mat4RotateX(angle);
+      sol::table t = lua.create_table();
+      for (i32 i = 0; i < 16; ++i) t[i + 1] = m.m[i];
+      return t;
+    };
+
+    lua["le"]["math"]["rotate_y"] = [](sol::this_state ts, f32 angle) -> sol::table {
+      sol::state_view lua(ts);
+      Matrix4 m = mat4RotateY(angle);
+      sol::table t = lua.create_table();
+      for (i32 i = 0; i < 16; ++i) t[i + 1] = m.m[i];
+      return t;
+    };
+
+    lua["le"]["math"]["rotate_z"] = [](sol::this_state ts, f32 angle) -> sol::table {
+      sol::state_view lua(ts);
+      Matrix4 m = mat4RotateZ(angle);
+      sol::table t = lua.create_table();
+      for (i32 i = 0; i < 16; ++i) t[i + 1] = m.m[i];
+      return t;
+    };
+
+    lua["le"]["math"]["rotate"] = [](sol::this_state ts, f32 pitch, f32 yaw, f32 roll) -> sol::table {
+      sol::state_view lua(ts);
+      Matrix4 m = mat4Rotate(pitch, yaw, roll);
+      sol::table t = lua.create_table();
+      for (i32 i = 0; i < 16; ++i) t[i + 1] = m.m[i];
+      return t;
+    };
+
+    lua["le"]["math"]["perspective"] = [](sol::this_state ts, f32 fov, f32 aspect, f32 near, f32 far) -> sol::table {
+      sol::state_view lua(ts);
+      Matrix4 m = mat4Perspective(fov, aspect, near, far);
+      sol::table t = lua.create_table();
+      for (i32 i = 0; i < 16; ++i) t[i + 1] = m.m[i];
+      return t;
+    };
+
+    lua["le"]["math"]["mul"] = [](sol::this_state ts, sol::table a, sol::table b) -> sol::table {
+      sol::state_view lua(ts);
+      Matrix4 ma{}, mb{};
+
+      for (i32 i = 0; i < 16; ++i) {
+        ma.m[i] = a[i + 1];
+        mb.m[i] = b[i + 1];
+      }
+
+      Matrix4 out = mat4Mul(ma, mb);
+      sol::table t = lua.create_table();
+      for (i32 i = 0; i < 16; ++i) t[i + 1] = out.m[i];
+
+      return t;
+    };
+
+    lua["le"]["math"]["look_at"] = [](sol::this_state ts, 
+                                      f32 ex, f32 ey, f32 ez,
+                                      f32 tx, f32 ty, f32 tz,
+                                      f32 ux, f32 uy, f32 uz) -> sol::table {
+      sol::state_view lua(ts);
+      Matrix4 m = mat4LookAt(
+        { ex, ey, ez },
+        { tx, ty, tz },
+        { ux, uy, uz }
+      );
+
+      sol::table t = lua.create_table();
+      for (i32 i = 0; i < 16; ++i) t[i + 1] = m.m[i];
+
+      return t;
+    };
+  }
+
   void LuaEngine::BindGraphics(sol::state &lua) {
     lua["le"]["gfx"] = lua.create_table();
 
@@ -540,102 +647,221 @@ namespace lua {
 
     lua["le"]["gfx"]["set_uniform1"] = [&](const string &name, f32 x) {
       if (!m_Program) return;
-      glUniform1f(m_Program->GetUniformLocation(name), x);
+      GLint loc = m_Program->GetUniformLocation(name);
+      if (loc == -1) {
+        LogError("ユニフォーム見つけられません： " + name);
+        return;
+      }
+      glUniform1f(loc, x);
     };
 
     lua["le"]["gfx"]["set_uniform2"] = [&](const string &name, f32 x, f32 y) {
       if (!m_Program) return;
-      glUniform2f(m_Program->GetUniformLocation(name), x, y);
+      GLint loc = m_Program->GetUniformLocation(name);
+      if (loc == -1) {
+        LogError("ユニフォーム見つけられません： " + name);
+        return;
+      }
+      glUniform2f(loc, x, y);
     };
 
     lua["le"]["gfx"]["set_uniform3"] = [&](const string &name, f32 x, f32 y, f32 z) {
       if (!m_Program) return;
-      glUniform3f(m_Program->GetUniformLocation(name), x, y, z);
+      GLint loc = m_Program->GetUniformLocation(name);
+      if (loc == -1) {
+        LogError("ユニフォーム見つけられません： " + name);
+        return;
+      }
+      glUniform3f(loc, x, y, z);
     };
 
     lua["le"]["gfx"]["set_uniform4"] = [&](const string &name, f32 x, f32 y, f32 z, f32 w) {
       if (!m_Program) return;
-      glUniform4f(m_Program->GetUniformLocation(name), x, y, z, w);
+      GLint loc = m_Program->GetUniformLocation(name);
+      if (loc == -1) {
+        LogError("ユニフォーム見つけられません： " + name);
+        return;
+      }
+      glUniform4f(loc, x, y, z, w);
     };
 
     lua["le"]["gfx"]["set_uniform_float1"] = [&](const string &name, f32 x) {
       if (!m_Program) return;
-      glUniform1f(m_Program->GetUniformLocation(name), x);
+      GLint loc = m_Program->GetUniformLocation(name);
+      if (loc == -1) {
+        LogError("ユニフォーム見つけられません： " + name);
+        return;
+      }
+      glUniform1f(loc, x);
     };
 
     lua["le"]["gfx"]["set_uniform_float2"] = [&](const string &name, f32 x, f32 y) {
       if (!m_Program) return;
-      glUniform2f(m_Program->GetUniformLocation(name), x, y);
+      GLint loc = m_Program->GetUniformLocation(name);
+      if (loc == -1) {
+        LogError("ユニフォーム見つけられません： " + name);
+        return;
+      }
+      glUniform2f(loc, x, y);
     };
 
     lua["le"]["gfx"]["set_uniform_float3"] = [&](const string &name, f32 x, f32 y, f32 z) {
       if (!m_Program) return;
-      glUniform3f(m_Program->GetUniformLocation(name), x, y, z);
+      GLint loc = m_Program->GetUniformLocation(name);
+      if (loc == -1) {
+        LogError("ユニフォーム見つけられません： " + name);
+        return;
+      }
+      glUniform3f(loc, x, y, z);
     };
 
     lua["le"]["gfx"]["set_uniform_float4"] = [&](const string &name, f32 x, f32 y, f32 z, f32 w) {
       if (!m_Program) return;
-      glUniform4f(m_Program->GetUniformLocation(name), x, y, z, w);
+      GLint loc = m_Program->GetUniformLocation(name);
+      if (loc == -1) {
+        LogError("ユニフォーム見つけられません： " + name);
+        return;
+      }
+      glUniform4f(loc, x, y, z, w);
     };
 
     lua["le"]["gfx"]["set_uniform_double1"] = [&](const string &name, f64 x) {
       if (!m_Program) return;
-      glUniform1d(m_Program->GetUniformLocation(name), x);
+      GLint loc = m_Program->GetUniformLocation(name);
+      if (loc == -1) {
+        LogError("ユニフォーム見つけられません： " + name);
+        return;
+      }
+      glUniform1d(loc, x);
     };
 
     lua["le"]["gfx"]["set_uniform_double2"] = [&](const string &name, f64 x, f64 y) {
       if (!m_Program) return;
-      glUniform2d(m_Program->GetUniformLocation(name), x, y);
+      GLint loc = m_Program->GetUniformLocation(name);
+      if (loc == -1) {
+        LogError("ユニフォーム見つけられません： " + name);
+        return;
+      }
+      glUniform2d(loc, x, y);
     };
 
     lua["le"]["gfx"]["set_uniform_double3"] = [&](const string &name, f64 x, f64 y, f64 z) {
       if (!m_Program) return;
-      glUniform3d(m_Program->GetUniformLocation(name), x, y, z);
+      GLint loc = m_Program->GetUniformLocation(name);
+      if (loc == -1) {
+        LogError("ユニフォーム見つけられません： " + name);
+        return;
+      }
+      glUniform3d(loc, x, y, z);
     };
 
     lua["le"]["gfx"]["set_uniform_double4"] = [&](const string &name, f64 x, f64 y, f64 z, f64 w) {
       if (!m_Program) return;
-      glUniform4d(m_Program->GetUniformLocation(name), x, y, z, w);
+      GLint loc = m_Program->GetUniformLocation(name);
+      if (loc == -1) {
+        LogError("ユニフォーム見つけられません： " + name);
+        return;
+      }
+      glUniform4d(loc, x, y, z, w);
     };
 
     lua["le"]["gfx"]["set_uniform_int1"] = [&](const string &name, i32 x) {
       if (!m_Program) return;
-      glUniform1i(m_Program->GetUniformLocation(name), x);
+      GLint loc = m_Program->GetUniformLocation(name);
+      if (loc == -1) {
+        LogError("ユニフォーム見つけられません： " + name);
+        return;
+      }
+      glUniform1i(loc, x);
     };
 
     lua["le"]["gfx"]["set_uniform_int2"] = [&](const string &name, i32 x, i32 y) {
       if (!m_Program) return;
-      glUniform2i(m_Program->GetUniformLocation(name), x, y);
+      GLint loc = m_Program->GetUniformLocation(name);
+      if (loc == -1) {
+        LogError("ユニフォーム見つけられません： " + name);
+        return;
+      }
+      glUniform2i(loc, x, y);
     };
 
     lua["le"]["gfx"]["set_uniform_int3"] = [&](const string &name, i32 x, i32 y, i32 z) {
       if (!m_Program) return;
-      glUniform3i(m_Program->GetUniformLocation(name), x, y, z);
+      GLint loc = m_Program->GetUniformLocation(name);
+      if (loc == -1) {
+        LogError("ユニフォーム見つけられません： " + name);
+        return;
+      }
+      glUniform3i(loc, x, y, z);
     };
 
     lua["le"]["gfx"]["set_uniform_int4"] = [&](const string &name, i32 x, i32 y, i32 z, i32 w) {
       if (!m_Program) return;
-      glUniform4i(m_Program->GetUniformLocation(name), x, y, z, w);
+      GLint loc = m_Program->GetUniformLocation(name);
+      if (loc == -1) {
+        LogError("ユニフォーム見つけられません： " + name);
+        return;
+      }
+      glUniform4i(loc, x, y, z, w);
     };
 
     lua["le"]["gfx"]["set_uniform_uint1"] = [&](const string &name, u32 x) {
       if (!m_Program) return;
-      glUniform1ui(m_Program->GetUniformLocation(name), x);
+      GLint loc = m_Program->GetUniformLocation(name);
+      if (loc == -1) {
+        LogError("ユニフォーム見つけられません： " + name);
+        return;
+      }
+      glUniform1ui(loc, x);
     };
 
     lua["le"]["gfx"]["set_uniform_uint2"] = [&](const string &name, u32 x, u32 y) {
       if (!m_Program) return;
-      glUniform2ui(m_Program->GetUniformLocation(name), x, y);
+      GLint loc = m_Program->GetUniformLocation(name);
+      if (loc == -1) {
+        LogError("ユニフォーム見つけられません： " + name);
+        return;
+      }
+      glUniform2ui(loc, x, y);
     };
 
     lua["le"]["gfx"]["set_uniform_uint3"] = [&](const string &name, u32 x, u32 y, u32 z) {
       if (!m_Program) return;
-      glUniform3ui(m_Program->GetUniformLocation(name), x, y, z);
+      GLint loc = m_Program->GetUniformLocation(name);
+      if (loc == -1) {
+        LogError("ユニフォーム見つけられません： " + name);
+        return;
+      }
+      glUniform3ui(loc, x, y, z);
     };
 
     lua["le"]["gfx"]["set_uniform_uint4"] = [&](const string &name, u32 x, u32 y, u32 z, u32 w) {
       if (!m_Program) return;
-      glUniform4ui(m_Program->GetUniformLocation(name), x, y, z, w);
+      GLint loc = m_Program->GetUniformLocation(name);
+      if (loc == -1) {
+        LogError("ユニフォーム見つけられません： " + name);
+        return;
+      }
+      glUniform4ui(loc, x, y, z, w);
+    };
+
+    lua["le"]["gfx"]["set_uniform_mat4"] = [&](const string &name, sol::table t) {
+      if (!m_Program) return;
+      if (t.size() != 16) {
+        if (m_Info->i18n->GetCurrentLanguage().code == "ja_JP") LogError("mat4は16個の値が必要です。");
+        else LogError("mat4 must have 16 values.");
+        return;
+      }
+
+      Matrix4 mat{};
+      for (i32 i = 0; i < 16; ++i) mat.m[i] = t[i + 1];
+
+      GLint loc = m_Program->GetUniformLocation(name);
+      if (loc == -1) {
+        LogError("ユニフォーム見つけられません： " + name);
+        return;
+      }
+      glUniformMatrix4fv(loc, 1, GL_FALSE, mat.m);
     };
   }
 
