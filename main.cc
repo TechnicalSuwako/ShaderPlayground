@@ -102,6 +102,10 @@ int main(void) {
     return -1;
   }
 
+  // 言語
+  db::Locale i18n(&db);
+  glfwInfo.i18n = &i18n;
+
   // コンソール
   gui::ConsoleLog cmd;
 
@@ -128,13 +132,13 @@ int main(void) {
     LUA = c.luaCode;
   }
 
-  string title = shaderName + "（頂点シェーダー）";
+  string title = shaderName + "（" + glfwInfo.i18n->GetWord("editorvertshader") + "）";
   gui::Editor vertEditor((title + "###VertexEditor").c_str(), "VertexEditor", VERT.code, gui::Glsl, ge.GetCjkFont(), ge.GetMonoFont());
 
-  title = shaderName + "（フラグメントシェーダー）";
+  title = shaderName + "（" + glfwInfo.i18n->GetWord("editorfragshader") + "）";
   gui::Editor fragEditor((title + "###FragmentEditor").c_str(), "FragmentEditor", FRAG.code, gui::Glsl, ge.GetCjkFont(), ge.GetMonoFont());
 
-  title = shaderName + "（Luaエディター）";
+  title = shaderName + "（" + glfwInfo.i18n->GetWord("editorlua") + "）";
   gui::Editor luaEditor((title + "###LuaEditor").c_str(), "LuaEditor", LUA.code, gui::Lua, ge.GetCjkFont(), ge.GetMonoFont());
 
   // シェーダーをコンパイル
@@ -179,9 +183,9 @@ int main(void) {
           if (!luaEngine.Validate(LUA.code)) {
             gui::LogEntry entry;
             entry.type = gui::LogType::Error;
-            entry.text = "Luaコードが不正ですので、コンパイル出来ませんでした。";
+            entry.text = glfwInfo.i18n->GetWord("consolelogerrorluainvalidcomp");
             cmd.Add(entry);
-            std::cout << entry.text << std::endl;
+            std::cerr << entry.text << std::endl;
             return;
           }
         } catch (const std::exception &e) {
@@ -189,7 +193,11 @@ int main(void) {
           entry.type = gui::LogType::Error;
           entry.text = e.what();
           cmd.Add(entry);
-          std::cout << entry.text << std::endl;
+          std::cerr << entry.text << std::endl;
+          entry.text = glfwInfo.i18n->GetWord("consolelogerrorluainvalidcomp");
+          cmd.Add(entry);
+          std::cerr << entry.text << std::endl;
+          return;
         }
 
         shaderProgram.Reload(VERT.code, FRAG.code);
@@ -224,19 +232,22 @@ int main(void) {
             glEnableVertexAttribArray(a.location);
           }
         }
+
+        gui::LogEntry entry;
+        entry.type = gui::LogType::Info;
+        entry.text = glfwInfo.i18n->GetWord("consoleloginfocompileok");
+        cmd.Add(entry);
+        std::cout << entry.text << std::endl;
       } catch (const std::exception &e) {
         gui::LogEntry entry;
         entry.type = gui::LogType::Error;
         entry.text = e.what();
         cmd.Add(entry);
         std::cerr << entry.text << std::endl;
+        entry.text = glfwInfo.i18n->GetWord("consolelogerrorluainvalidcomp");
+        cmd.Add(entry);
+        std::cerr << entry.text << std::endl;
       }
-
-      gui::LogEntry entry;
-      entry.type = gui::LogType::Info;
-      entry.text = "シェーダーをコンパイルしました。";
-      cmd.Add(entry);
-      std::cout << entry.text << std::endl;
     };
 
     glfwInfo.save = [&]() {
@@ -245,31 +256,46 @@ int main(void) {
       LUA.code = luaEditor.Get().GetText();
 
       try {
-        if (!luaEngine.Validate(LUA.code)) {
+        try {
+          if (!luaEngine.Validate(LUA.code)) {
+            gui::LogEntry entry;
+            entry.type = gui::LogType::Error;
+            entry.text = glfwInfo.i18n->GetWord("consolelogerrorluainvalidsave");
+            cmd.Add(entry);
+            std::cout << entry.text << std::endl;
+            return;
+          }
+        } catch (const std::exception &e) {
           gui::LogEntry entry;
           entry.type = gui::LogType::Error;
-          entry.text = "Luaコードが不正ですので、保存出来ませんでした。";
+          entry.text = e.what();
+          cmd.Add(entry);
+          std::cout << entry.text << std::endl;
+          entry.text = glfwInfo.i18n->GetWord("consolelogerrorluainvalidsave");
           cmd.Add(entry);
           std::cout << entry.text << std::endl;
           return;
         }
+
+        db::SaveCode(db, VERT);
+        db::SaveCode(db, FRAG);
+        db::SaveCode(db, LUA);
+
+        gui::LogEntry entry;
+        entry.type = gui::LogType::Info;
+        entry.text = glfwInfo.i18n->GetWord("consoleloginfosaveok");
+        cmd.Add(entry);
+        std::cout << entry.text << std::endl;
       } catch (const std::exception &e) {
         gui::LogEntry entry;
         entry.type = gui::LogType::Error;
         entry.text = e.what();
         cmd.Add(entry);
         std::cout << entry.text << std::endl;
+        entry.text = glfwInfo.i18n->GetWord("consolelogerrorluainvalidsave");
+        cmd.Add(entry);
+        std::cout << entry.text << std::endl;
       }
-
-      db::SaveCode(db, VERT);
-      db::SaveCode(db, FRAG);
-      db::SaveCode(db, LUA);
-
-      gui::LogEntry entry;
-      entry.type = gui::LogType::Info;
-      entry.text = "シェーダー及びLuaファイルを保存しました。";
-      cmd.Add(entry);
-      std::cout << entry.text << std::endl;
     };
 
     glfw.PollEvents();
@@ -310,6 +336,16 @@ int main(void) {
 
     isHold = isSaveKey || isCompileKey || isAboutKey || isQuitKey || isManualKey || isSettingsKey;
 
+    if (glfwInfo.isLangChange) {
+      string nTit = shaderName + "（" + glfwInfo.i18n->GetWord("editorvertshader") + "）";
+      vertEditor.SetTitle(nTit + "###VertexEditor");
+      nTit = shaderName + "（" + glfwInfo.i18n->GetWord("editorfragshader") + "）";
+      fragEditor.SetTitle(nTit + "###FragmentEditor");
+      nTit = shaderName + "（" + glfwInfo.i18n->GetWord("editorlua") + "）";
+      luaEditor.SetTitle(nTit + "###LuaEditor");
+      glfwInfo.isLangChange = false;
+    }
+
     if (window.GetAttrib(glfwpp::Attributes::Iconified) != 0) {
       ImGui_ImplGlfw_Sleep(10);
       continue;
@@ -324,7 +360,7 @@ int main(void) {
     vertEditor.Render();
     fragEditor.Render();
     luaEditor.Render();
-    cmd.Draw();
+    cmd.Draw(glfwInfo, glfwInfo.i18n->GetWord("editorconsole").c_str());
     about.Draw(glfwInfo);
     manual.Draw(glfwInfo);
 

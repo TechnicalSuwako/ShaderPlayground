@@ -36,6 +36,38 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 #pragma once
 
-#include <database/setup.hh>
-#include <database/shaderdata.hh>
-#include <database/locale.hh>
+#include <util/types.hh>
+#include <unordered_map>
+
+namespace sqlitepp {
+  class Instance;
+} // namespace sqlitepp
+
+namespace db {
+  struct Languages {
+    i32 id;
+    string name;
+    string code;
+    std::unordered_map<string, string> dict;
+  }; // struct Languages
+
+  class Locale {
+    public:
+      Locale(sqlitepp::Instance *db);
+      ~Locale() {}
+
+      string GetWord(const string &key) const;
+      void SetLanguage(i32 id);
+
+      vector<Languages> GetAllLanguages() const { return m_Langs; }
+      Languages GetCurrentLanguage() const { return m_CurLang; }
+
+    private:
+      void setLang() noexcept;
+
+    private:
+      sqlitepp::Instance *m_DB;
+      vector<Languages> m_Langs;
+      Languages m_CurLang;
+  }; // class Locale
+} // namespace db

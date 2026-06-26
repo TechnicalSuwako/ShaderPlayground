@@ -42,9 +42,9 @@ namespace gui {
     m_Lines.push_back(entry);
   }
 
-  void ConsoleLog::Draw(cstr title) {
+  void ConsoleLog::Draw(GlfwInfo &info, cstr title) {
     ImGui::Begin((string(title) + "###Console").c_str());
-    if (ImGui::Button("消す")) Clear();
+    if (ImGui::Button(info.i18n->GetWord("editorconsoleclear").c_str())) Clear();
     ImGui::Separator();
     for (const auto &line : m_Lines) {
       if (line.type == LogType::Error)

@@ -58,6 +58,8 @@ namespace gui {
       void SetCode(string code);
       void RenderStatusBar(TextEditor editor);
 
+      void SetTitle(const string &title) { m_Title = title; }
+
     private:
       TextEditor m_Editor;
       ImFont *m_CjkFont;

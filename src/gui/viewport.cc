@@ -114,7 +114,8 @@ namespace gui {
   }
 
   void ViewPort::Draw(GlfwInfo &glfw) {
-    ImGui::Begin("ビューポート###View");
+    string tit = glfw.i18n->GetWord("editorviewport") + "###View";
+    ImGui::Begin(tit.c_str());
 
     ImVec2 avail = ImGui::GetContentRegionAvail();
     if ((i32)avail.x != m_Width || (i32)avail.y != m_Height) {

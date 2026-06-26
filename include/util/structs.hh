@@ -37,6 +37,7 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #pragma once
 
 #include <util/glfwpp.hh>
+#include <database/locale.hh>
 #include <version.hh>
 #include <functional>
 #include <string>
@@ -49,8 +50,11 @@ struct GlfwInfo {
   bool isAbout = false;
   bool isManual = false;
   bool isSettings = false;
+  bool isLangChange = false;
 
   std::string version = version::full;
+
+  db::Locale *i18n;
 
   std::function<void()> compile;
   std::function<void()> save;

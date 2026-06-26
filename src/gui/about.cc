@@ -43,10 +43,17 @@ namespace gui {
 
     ImGuiWindowFlags flags = 0;
     ImGui::SetNextWindowSize({400, 300}, ImGuiCond_Appearing);
-    ImGui::Begin("Shader Playgroundについて", &glfw.isAbout, flags);
+    ImGui::Begin(glfw.i18n->GetWord("helpabout").c_str(), &glfw.isAbout, flags);
     string name = "Shader Playground " + glfw.version;
-    string copyright = "© 2026 - ０７６スタジオ合同会社";
-    string developer = "開発者：テクニカル諏訪子";
+    string copyright;
+    string developer;
+    if (glfw.i18n->GetCurrentLanguage().code == "ja_JP") {
+      copyright = "© 2026 - ０７６スタジオ合同会社";
+      developer = "開発者：テクニカル諏訪子";
+    } else {
+      copyright = "© 2026 - 076 Studio LLC";
+      developer = "Developer: TechnicalSuwako";
+    }
 
     ImGui::SetWindowFontScale(1.8f);
     ImGui::Text(name.c_str());

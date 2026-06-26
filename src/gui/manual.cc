@@ -45,25 +45,25 @@ namespace gui {
     ImGuiWindowFlags flags = ImGuiWindowFlags_NoCollapse;
 
     ImGui::SetNextWindowSize({ 600, 700 }, ImGuiCond_Appearing);
-    ImGui::Begin("マニュアル", &glfw.isManual, flags);
+    ImGui::Begin(glfw.i18n->GetWord("helpmanual").c_str(), &glfw.isManual, flags);
 
     if (ImGui::BeginTabBar("ManualTabs")) {
-      if (ImGui::BeginTabItem("概要")) {
+      if (ImGui::BeginTabItem(glfw.i18n->GetWord("helpmanualoverview").c_str())) {
         m_CurPage = "index";
         ImGui::EndTabItem();
       }
 
-      if (ImGui::BeginTabItem("シューだー")) {
+      if (ImGui::BeginTabItem(glfw.i18n->GetWord("helpmanualshader").c_str())) {
         m_CurPage = "shader";
         ImGui::EndTabItem();
       }
 
-      if (ImGui::BeginTabItem("Luaエンジン")) {
+      if (ImGui::BeginTabItem(glfw.i18n->GetWord("helpmanuallua").c_str())) {
         m_CurPage = "lua";
         ImGui::EndTabItem();
       }
 
-      if (ImGui::BeginTabItem("ホットキー")) {
+      if (ImGui::BeginTabItem(glfw.i18n->GetWord("helpmanualhotkey").c_str())) {
         m_CurPage = "hotkeys";
         ImGui::EndTabItem();
       }
@@ -76,40 +76,43 @@ namespace gui {
     ImGui::BeginChild("ManualContent", ImVec2(0, 0), 0, ImGuiWindowFlags_HorizontalScrollbar);
 
     if (m_CurPage == "index") {
-      ImGui::TextWrapped("Shader Playgroundへようこそ！");
-      ImGui::Dummy(ImVec2(0, 10));
-      renderMarkdown(R"(# 基本操作
+      if (glfw.i18n->GetCurrentLanguage().code == "ja_JP") {
+        ImGui::TextWrapped("Shader Playgroundへようこそ！");
+        ImGui::Dummy(ImVec2(0, 10));
+        renderMarkdown(R"(# 基本操作
+
+**Note**: For English, go to 編集 → 設定 (or press CTRL + ,), and set "言語/Language" to "English".
 
 - **コンパイル**: F5 又は「ビルド→コンパイル」
-- **保存**: Ctrl+s 又は「ファイル→保存」
+- **保存**: Ctrl+S 又は「ファイル→保存」
 - 右側のパネルでシェーダーコードを編集出来ます
 )");
+      } else {
+        ImGui::TextWrapped("Welcome to Shader Playground!");
+        ImGui::Dummy(ImVec2(0, 10));
+        renderMarkdown(R"(# Basic operation
+
+**注意**: 日本語で読むには、「Edit → Settings」をクリックし（若しくはCTRL + ,を押し）、「言語/Language」から「日本語」を御選択下さい。".
+
+- **Compile**: F5 or "Build → Compile"
+- **Save**: Ctrl+S or "File → Save"
+- You can edit the shader code in the right side panel
+)");
+      }
     } else if (m_CurPage == "shader") {
       ImGui::TextWrapped("Shader Playgroundへようこそ！");
       ImGui::Dummy(ImVec2(0, 10));
-      renderMarkdown(R"(# 基本操作
-
-- **コンパイル**: F5 又は「ビルド→コンパイル」
-- **保存**: Ctrl+s 又は「ファイル→保存」
-- 右側のパネルでシェーダーコードを編集出来ます
+      renderMarkdown(R"(# シェーダー
 )");
     } else if (m_CurPage == "lua") {
       ImGui::TextWrapped("Lua");
       ImGui::Dummy(ImVec2(0, 10));
       renderMarkdown(R"(# Luaエンジン
-
-- **コンパイル**: F5 又は「ビルド→コンパイル」
-- **保存**: Ctrl+s 又は「ファイル→保存」
-- 右側のパネルでシェーダーコードを編集出来ます
 )");
     } else if (m_CurPage == "hotkeys") {
       ImGui::TextWrapped("Shader Playgroundへようこそ！");
       ImGui::Dummy(ImVec2(0, 10));
-      renderMarkdown(R"(# 基本操作
-
-- **コンパイル**: F5 又は「ビルド→コンパイル」
-- **保存**: Ctrl+s 又は「ファイル→保存」
-- 右側のパネルでシェーダーコードを編集出来ます
+      renderMarkdown(R"(# ホットキー
 )");
     }
 

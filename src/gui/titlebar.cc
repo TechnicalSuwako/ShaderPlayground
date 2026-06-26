@@ -119,9 +119,9 @@ namespace gui {
     ImGui::End();
 
     if (ImGui::BeginMainMenuBar()) {
-      if (ImGui::BeginMenu("ファイル")) {
-        if (ImGui::MenuItem("新しいファイル", "CTRL+N", false, false)) {}
-        if (ImGui::MenuItem("開く", "Ctrl+O", false, false)) {}
+      if (ImGui::BeginMenu(glfw.i18n->GetWord("file").c_str())) {
+        if (ImGui::MenuItem(glfw.i18n->GetWord("filenew").c_str(), "CTRL+N", false, false)) {}
+        if (ImGui::MenuItem(glfw.i18n->GetWord("fileopen").c_str(), "Ctrl+O", false, false)) {}
         //if (ImGui::BeginMenu("最近使った物")) {
         //  ImGui::MenuItem("fish_hat.c");
         //  ImGui::MenuItem("fish_hat.inl");
@@ -133,52 +133,58 @@ namespace gui {
         //  }
         //  ImGui::EndMenu();
         //}
-        if (ImGui::MenuItem("保存", "Ctrl+S")) {
+        if (ImGui::MenuItem(glfw.i18n->GetWord("filesave").c_str(), "Ctrl+S")) {
           glfw.save();
         }
 
         ImGui::Separator();
-        if (ImGui::MenuItem("終了", "CTRL+Q")) {
+        if (ImGui::MenuItem(glfw.i18n->GetWord("quit").c_str(), "CTRL+Q")) {
           glfw.isRunning = false;
         }
         ImGui::EndMenu();
       }
 
-      if (ImGui::BeginMenu("編集")) {
-        if (ImGui::MenuItem("元に戻す", "Ctrl+Z", false, false)) {}
-        if (ImGui::MenuItem("やり直し", "Ctrl+Y", false, false)) {}
+      if (ImGui::BeginMenu(glfw.i18n->GetWord("edit").c_str())) {
+        if (ImGui::MenuItem(glfw.i18n->GetWord("editundo").c_str(), "Ctrl+Z", false, false)) {}
+        if (ImGui::MenuItem(glfw.i18n->GetWord("editredo").c_str(), "Ctrl+Y", false, false)) {}
         ImGui::Separator();
-        if (ImGui::MenuItem("切り取り", "Ctrl+X", false, false)) {}
-        if (ImGui::MenuItem("コピー", "Ctrl+C", false, false)) {}
-        if (ImGui::MenuItem("貼り付け", "Ctrl+V", false, false)) {}
-        if (ImGui::MenuItem("行を複製", "Ctrl+D", false, false)) {}
+        if (ImGui::MenuItem(glfw.i18n->GetWord("editcut").c_str(), "Ctrl+X", false, false)) {}
+        if (ImGui::MenuItem(glfw.i18n->GetWord("editcopy").c_str(), "Ctrl+C", false, false)) {}
+        if (ImGui::MenuItem(glfw.i18n->GetWord("editpaste").c_str(), "Ctrl+V", false, false)) {}
+        if (ImGui::MenuItem(glfw.i18n->GetWord("editduplicate").c_str(), "Ctrl+D", false, false)) {}
         ImGui::Separator();
-        if (ImGui::MenuItem("設定", "Ctrl+,", false, false)) {
+        if (ImGui::MenuItem(glfw.i18n->GetWord("settings").c_str(), "Ctrl+,", false, false)) {
           glfw.isSettings = true;
         }
         ImGui::EndMenu();
       }
 
-      if (ImGui::BeginMenu("ビルド")) {
-        if (ImGui::MenuItem("コンパイル", "F5")) {
+      if (ImGui::BeginMenu(glfw.i18n->GetWord("build").c_str())) {
+        if (ImGui::MenuItem(glfw.i18n->GetWord("buildcompile").c_str(), "F5")) {
           glfw.compile();
         }
         ImGui::EndMenu();
       }
 
-      if (ImGui::BeginMenu("ヘルプ")) {
-        if (ImGui::MenuItem("マニュアル", "F1")) {
+      if (ImGui::BeginMenu(glfw.i18n->GetWord("help").c_str())) {
+        if (ImGui::MenuItem(glfw.i18n->GetWord("helpmanual").c_str(), "F1")) {
           glfw.isManual = true;
         }
-        if (ImGui::MenuItem("Shader Playgroundについて", "CTRL+H")) {
+        if (ImGui::MenuItem(glfw.i18n->GetWord("helpabout").c_str(), "CTRL+H")) {
           glfw.isAbout = true;
         }
         ImGui::EndMenu();
       }
 
       if (ImGui::BeginMenu("言語/Language")) {
-        if (ImGui::MenuItem("日本語")) {}
-        if (ImGui::MenuItem("English")) {}
+        if (ImGui::MenuItem("日本語")) {
+          glfw.i18n->SetLanguage(1);
+          glfw.isLangChange = true;
+        }
+        if (ImGui::MenuItem("English")) {
+          glfw.i18n->SetLanguage(2);
+          glfw.isLangChange = true;
+        }
         ImGui::EndMenu();
       }
 
@@ -186,13 +192,14 @@ namespace gui {
 
       f32 rightW = ImGui::GetContentRegionAvail().x;
       ImGui::SetCursorPosX(ImGui::GetCursorPosX() + rightW - 400.f);
-      ImGui::Text("現在フレームレート： %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+      string fmt = glfw.i18n->GetWord("currentfps") + "： %.3f ms/frame (%.1f FPS)";
+      ImGui::Text(fmt.c_str(), 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 
       ImGui::SameLine();
       char timeBuf[64];
       time_t now = time(nullptr);
       tm *local = localtime(&now);
-      strftime(timeBuf, sizeof(timeBuf), "%Y年%m月日%d日 %H:%M:%S", local);
+      strftime(timeBuf, sizeof(timeBuf), glfw.i18n->GetWord("dateformat").c_str(), local);
       ImGui::Text(" | %s", timeBuf);
 
       ImGui::EndMainMenuBar();
