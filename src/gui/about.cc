@@ -39,16 +39,16 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <database/locale.hh>
 
 namespace gui {
-  void About::Draw(GlfwInfo &glfw) {
-    if (!glfw.isAbout) return;
+  void About::Draw(Info &info) {
+    if (!info.isAbout) return;
 
     ImGuiWindowFlags flags = 0;
     ImGui::SetNextWindowSize({400, 300}, ImGuiCond_Appearing);
-    ImGui::Begin(glfw.i18n->GetWord("helpabout").c_str(), &glfw.isAbout, flags);
-    string name = "Shader Playground " + glfw.version;
+    ImGui::Begin(info.i18n->GetWord("helpabout").c_str(), &info.isAbout, flags);
+    string name = "Shader Playground " + info.version;
     string copyright;
     string developer;
-    if (glfw.i18n->GetCurrentLanguage().code == "ja_JP") {
+    if (info.i18n->GetCurrentLanguage().code == "ja_JP") {
       copyright = "© 2026 - ０７６スタジオ合同会社";
       developer = "開発者：テクニカル諏訪子";
     } else {
@@ -74,7 +74,7 @@ namespace gui {
       winSize.y - 40.f
     });
 
-    if (ImGui::Button("OK", { btnW, btnH })) glfw.isAbout = false;
+    if (ImGui::Button("OK", { btnW, btnH })) info.isAbout = false;
     ImGui::End();
   }
 } // namespace gui

@@ -44,7 +44,7 @@ namespace gui {
     public:
       void Init();
       void Resize(i32 width, i32 height);
-      void Draw(GlfwInfo &glfw);
+      void Draw(Info &info);
 
       u32 GetFBO() const { return m_FBO; }
       u32 GetTexture() const { return m_Texture; }

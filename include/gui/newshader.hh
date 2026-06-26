@@ -37,32 +37,22 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #pragma once
 
 #include <util/types.hh>
-
-struct Info;
-namespace db {
-  class Locale;
-} // namespace db
+#include <util/structs.hh>
 
 namespace gui {
-  enum class LogType {
-    Normal,
-    Info,
-    Warning,
-    Error,
-  };
-
-  struct LogEntry {
-    LogType type;
-    string text;
-  };
-
-  class ConsoleLog {
+  class NewShader {
     public:
-      void Add(LogEntry entry);
-      void Draw(Info &info, cstr title = "コンソール");
-      void Clear();
+      NewShader(Info *info);
+      ~NewShader();
+
+      db::ShaderData Make();
 
     private:
-      vector<LogEntry> m_Lines;
-  };
+      string getDefaultVert();
+      string getDefaultFrag();
+      string getDefaultLua();
+
+    private:
+      Info *m_Info;
+  }; // class NewShader
 } // namespace gui

@@ -43,4 +43,7 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <gui/about.hh>
 #include <gui/consolelog.hh>
 #include <gui/manual.hh>
- #include <gui/settings.hh>
+#include <gui/settings.hh>
+#include <gui/newshader.hh>
+//#include <gui/openshader.hh>
+//#include <gui/saveasshader.hh>

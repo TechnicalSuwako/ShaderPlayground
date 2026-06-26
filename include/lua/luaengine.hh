@@ -65,7 +65,7 @@ namespace lua {
 
   class LuaEngine {
     public:
-      LuaEngine(const string &code, Program *prog, GlfwInfo *glfwInfo);
+      LuaEngine(const string &code, Program *prog, Info *info);
       ~LuaEngine();
 
     public:
@@ -96,7 +96,7 @@ namespace lua {
       sol::state m_Lua;
       string m_Code;
       Program *m_Program = nullptr;
-      GlfwInfo *m_GlfwInfo = {};
+      Info *m_Info = {};
       string m_ApiVersion = "1.0.0";
       f32 m_LastTime = 0.f;
   };

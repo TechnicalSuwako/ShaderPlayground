@@ -41,18 +41,18 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <imgui.h>
 
 namespace gui {
-  void Settings::Draw(GlfwInfo &glfw) {
-    if (!glfw.isSettings) return;
+  void Settings::Draw(Info &info) {
+    if (!info.isSettings) return;
 
     ImGuiWindowFlags flags = 0;
     ImGui::SetNextWindowSize({ 400, 300 }, ImGuiCond_Appearing);
-    ImGui::Begin(glfw.i18n->GetWord("settings").c_str(), &glfw.isSettings, flags);
+    ImGui::Begin(info.i18n->GetWord("settings").c_str(), &info.isSettings, flags);
 
     ImGui::Text("言語 / Language");
     ImGui::SameLine();
     cstr items[] = { "日本語 (ja_JP)", "English (en_US)" };
     const i32 itemCount = IM_COUNTOF(items);
-    i32 curId = glfw.i18n->GetCurrentLanguage().id;
+    i32 curId = info.i18n->GetCurrentLanguage().id;
     static i32 sel = (curId >= 1) ? curId - 1 : 0;
 
     sel = (curId >= 1 && curId <= itemCount) ? curId - 1 : 0;
@@ -63,11 +63,11 @@ namespace gui {
         const bool isSel = (sel == n);
         if (ImGui::Selectable(items[n], isSel)) {
           sel = n;
-          glfw.i18n->SetLanguage(n + 1);
+          info.i18n->SetLanguage(n + 1);
           gui::LogEntry entry;
           entry.type = gui::LogType::Info;
-          entry.text = glfw.i18n->GetWord("consoleloginfolangchangeok");
-          glfw.cmd->Add(entry);
+          entry.text = info.i18n->GetWord("consoleloginfolangchangeok");
+          info.cmd->Add(entry);
         }
 
         if (isSel) {
@@ -88,7 +88,7 @@ namespace gui {
       winSize.y - 40.f
                         });
 
-    if (ImGui::Button("OK", { btnW, btnH })) glfw.isSettings = false;
+    if (ImGui::Button("OK", { btnW, btnH })) info.isSettings = false;
     ImGui::End();
   }
 } // namespace gui

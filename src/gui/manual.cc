@@ -39,31 +39,31 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <database/locale.hh>
 
 namespace gui {
-  void Manual::Draw(GlfwInfo &glfw) {
-    if (!glfw.isManual) return;
+  void Manual::Draw(Info &info) {
+    if (!info.isManual) return;
 
     ImGuiWindowFlags flags = ImGuiWindowFlags_NoCollapse;
 
     ImGui::SetNextWindowSize({ 600, 700 }, ImGuiCond_Appearing);
-    ImGui::Begin(glfw.i18n->GetWord("helpmanual").c_str(), &glfw.isManual, flags);
+    ImGui::Begin(info.i18n->GetWord("helpmanual").c_str(), &info.isManual, flags);
 
     if (ImGui::BeginTabBar("ManualTabs")) {
-      if (ImGui::BeginTabItem(glfw.i18n->GetWord("helpmanualoverview").c_str())) {
+      if (ImGui::BeginTabItem(info.i18n->GetWord("helpmanualoverview").c_str())) {
         m_CurPage = "index";
         ImGui::EndTabItem();
       }
 
-      if (ImGui::BeginTabItem(glfw.i18n->GetWord("helpmanualshader").c_str())) {
+      if (ImGui::BeginTabItem(info.i18n->GetWord("helpmanualshader").c_str())) {
         m_CurPage = "shader";
         ImGui::EndTabItem();
       }
 
-      if (ImGui::BeginTabItem(glfw.i18n->GetWord("helpmanuallua").c_str())) {
+      if (ImGui::BeginTabItem(info.i18n->GetWord("helpmanuallua").c_str())) {
         m_CurPage = "lua";
         ImGui::EndTabItem();
       }
 
-      if (ImGui::BeginTabItem(glfw.i18n->GetWord("helpmanualhotkey").c_str())) {
+      if (ImGui::BeginTabItem(info.i18n->GetWord("helpmanualhotkey").c_str())) {
         m_CurPage = "hotkeys";
         ImGui::EndTabItem();
       }
@@ -76,7 +76,7 @@ namespace gui {
     ImGui::BeginChild("ManualContent", ImVec2(0, 0), 0, ImGuiWindowFlags_HorizontalScrollbar);
 
     if (m_CurPage == "index") {
-      if (glfw.i18n->GetCurrentLanguage().code == "ja_JP") {
+      if (info.i18n->GetCurrentLanguage().code == "ja_JP") {
         ImGui::TextWrapped("Shader Playgroundへようこそ！");
         ImGui::Dummy(ImVec2(0, 10));
         renderMarkdown(R"(# 基本操作

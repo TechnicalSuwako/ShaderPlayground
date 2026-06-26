@@ -75,7 +75,7 @@ int main(void) {
   window.MakeContextCurrent();
   glfw.SwapInterval(1);
 
-  GlfwInfo glfwInfo = { &glfw, &window, true, false, false, false };
+  Info info = { &glfw, &window, true, false, false, false };
 
 #ifndef PRODUCTION_BUILD
   bool showDemo = true;
@@ -104,11 +104,11 @@ int main(void) {
 
   // 言語
   db::Locale i18n(&db);
-  glfwInfo.i18n = &i18n;
+  info.i18n = &i18n;
 
   // コンソール
   gui::ConsoleLog cmd;
-  glfwInfo.cmd = &cmd;
+  info.cmd = &cmd;
 
   // ビューポート
   gui::ViewPort viewport;
@@ -119,38 +119,38 @@ int main(void) {
 
   // データベースからシェーダーとLuaコードの受け取り
   vector<db::ShaderData> codeMap = db::GetAllShaders(db);
-  u32 shaderId;
-  string shaderName;
-  db::CodeData VERT = {};
-  db::CodeData FRAG = {};
-  db::CodeData LUA = {};
+  info.shaderId;
+  info.shaderName;
+  info.VERT = {};
+  info.FRAG = {};
+  info.LUA = {};
 
   for (const auto &c : codeMap) {
-    shaderId = c.id;
-    shaderName = c.name;
-    VERT = c.vertexShader;
-    FRAG = c.fragmentShader;
-    LUA = c.luaCode;
+    info.shaderId = c.id;
+    info.shaderName = c.name;
+    info.VERT = c.vertexShader;
+    info.FRAG = c.fragmentShader;
+    info.LUA = c.luaCode;
   }
 
-  string title = shaderName + "（" + glfwInfo.i18n->GetWord("editorvertshader") + "）";
-  gui::Editor vertEditor((title + "###VertexEditor").c_str(), "VertexEditor", VERT.code, gui::Glsl, ge.GetCjkFont(), ge.GetMonoFont());
+  string title = info.shaderName + "（" + info.i18n->GetWord("editorvertshader") + "）";
+  gui::Editor vertEditor((title + "###VertexEditor").c_str(), "VertexEditor", info.VERT.code, gui::Glsl, ge.GetCjkFont(), ge.GetMonoFont());
 
-  title = shaderName + "（" + glfwInfo.i18n->GetWord("editorfragshader") + "）";
-  gui::Editor fragEditor((title + "###FragmentEditor").c_str(), "FragmentEditor", FRAG.code, gui::Glsl, ge.GetCjkFont(), ge.GetMonoFont());
+  title = info.shaderName + "（" + info.i18n->GetWord("editorfragshader") + "）";
+  gui::Editor fragEditor((title + "###FragmentEditor").c_str(), "FragmentEditor", info.FRAG.code, gui::Glsl, ge.GetCjkFont(), ge.GetMonoFont());
 
-  title = shaderName + "（" + glfwInfo.i18n->GetWord("editorlua") + "）";
-  gui::Editor luaEditor((title + "###LuaEditor").c_str(), "LuaEditor", LUA.code, gui::Lua, ge.GetCjkFont(), ge.GetMonoFont());
+  title = info.shaderName + "（" + info.i18n->GetWord("editorlua") + "）";
+  gui::Editor luaEditor((title + "###LuaEditor").c_str(), "LuaEditor", info.LUA.code, gui::Lua, ge.GetCjkFont(), ge.GetMonoFont());
 
   // シェーダーをコンパイル
-  Shader vertexShader(VERT.code, GL_VERTEX_SHADER);
-  Shader fragmentShader(FRAG.code, GL_FRAGMENT_SHADER);
+  Shader vertexShader(info.VERT.code, GL_VERTEX_SHADER);
+  Shader fragmentShader(info.FRAG.code, GL_FRAGMENT_SHADER);
 
   // シェーダープログラムをリンク
   Program shaderProgram(vertexShader, fragmentShader);
 
   // 頂点データはLuaから受け取る
-  lua::LuaEngine luaEngine(LUA.code, &shaderProgram, &glfwInfo);
+  lua::LuaEngine luaEngine(info.LUA.code, &shaderProgram, &info);
   auto &mesh = luaEngine.GetMesh();
 
   VertexArrays VAO(1);
@@ -174,19 +174,20 @@ int main(void) {
   gui::Settings settings;
 
   // メインレンダリングループ
-  while (!window.ShouldClose() && glfwInfo.isRunning) {
-    glfwInfo.compile = [&]() {
-      VERT.code = vertEditor.Get().GetText();
-      FRAG.code = fragEditor.Get().GetText();
-      LUA.code = luaEditor.Get().GetText();
+  while (!window.ShouldClose() && info.isRunning) {
+#pragma region Lambda
+    info.compile = [&]() {
+      info.VERT.code = vertEditor.Get().GetText();
+      info.FRAG.code = fragEditor.Get().GetText();
+      info.LUA.code = luaEditor.Get().GetText();
 
       try {
         try {
-          if (!luaEngine.Validate(LUA.code)) {
+          if (!luaEngine.Validate(info.LUA.code)) {
             gui::LogEntry entry;
             entry.type = gui::LogType::Error;
-            entry.text = glfwInfo.i18n->GetWord("consolelogerrorluainvalidcomp");
-            glfwInfo.cmd->Add(entry);
+            entry.text = info.i18n->GetWord("consolelogerrorluainvalidcomp");
+            info.cmd->Add(entry);
             std::cerr << entry.text << std::endl;
             return;
           }
@@ -194,17 +195,17 @@ int main(void) {
           gui::LogEntry entry;
           entry.type = gui::LogType::Error;
           entry.text = e.what();
-          glfwInfo.cmd->Add(entry);
+          info.cmd->Add(entry);
           std::cerr << entry.text << std::endl;
-          entry.text = glfwInfo.i18n->GetWord("consolelogerrorluainvalidcomp");
-          glfwInfo.cmd->Add(entry);
+          entry.text = info.i18n->GetWord("consolelogerrorluainvalidcomp");
+          info.cmd->Add(entry);
           std::cerr << entry.text << std::endl;
           return;
         }
 
-        shaderProgram.Reload(VERT.code, FRAG.code);
+        shaderProgram.Reload(info.VERT.code, info.FRAG.code);
         luaEngine.SetProgram(&shaderProgram);
-        luaEngine.Reload(LUA.code);
+        luaEngine.Reload(info.LUA.code);
         {
           lua::LuaMesh newMesh = luaEngine.GetMesh();
 
@@ -237,33 +238,43 @@ int main(void) {
 
         gui::LogEntry entry;
         entry.type = gui::LogType::Info;
-        entry.text = glfwInfo.i18n->GetWord("consoleloginfocompileok");
-        glfwInfo.cmd->Add(entry);
+        entry.text = info.i18n->GetWord("consoleloginfocompileok");
+        info.cmd->Add(entry);
         std::cout << entry.text << std::endl;
       } catch (const std::exception &e) {
         gui::LogEntry entry;
         entry.type = gui::LogType::Error;
         entry.text = e.what();
-        glfwInfo.cmd->Add(entry);
+        info.cmd->Add(entry);
         std::cerr << entry.text << std::endl;
-        entry.text = glfwInfo.i18n->GetWord("consolelogerrorluainvalidcomp");
-        glfwInfo.cmd->Add(entry);
+        entry.text = info.i18n->GetWord("consolelogerrorluainvalidcomp");
+        info.cmd->Add(entry);
         std::cerr << entry.text << std::endl;
       }
     };
 
-    glfwInfo.save = [&]() {
-      VERT.code = vertEditor.Get().GetText();
-      FRAG.code = fragEditor.Get().GetText();
-      LUA.code = luaEditor.Get().GetText();
+    info.save = [&]() {
+      if (info.shaderId == 0) {
+        gui::LogEntry entry;
+        entry.type = gui::LogType::Warning;
+        std::cout << entry.text << std::endl;
+        entry.text = "TODO: 保存ダイアログボックス関数は開発中・・・";
+        info.cmd->Add(entry);
+        std::cout << entry.text << std::endl;
+        return;
+      }
+
+      info.VERT.code = vertEditor.Get().GetText();
+      info.FRAG.code = fragEditor.Get().GetText();
+      info.LUA.code = luaEditor.Get().GetText();
 
       try {
         try {
-          if (!luaEngine.Validate(LUA.code)) {
+          if (!luaEngine.Validate(info.LUA.code)) {
             gui::LogEntry entry;
             entry.type = gui::LogType::Error;
-            entry.text = glfwInfo.i18n->GetWord("consolelogerrorluainvalidsave");
-            glfwInfo.cmd->Add(entry);
+            entry.text = info.i18n->GetWord("consolelogerrorluainvalidsave");
+            info.cmd->Add(entry);
             std::cout << entry.text << std::endl;
             return;
           }
@@ -271,81 +282,133 @@ int main(void) {
           gui::LogEntry entry;
           entry.type = gui::LogType::Error;
           entry.text = e.what();
-          glfwInfo.cmd->Add(entry);
+          info.cmd->Add(entry);
           std::cout << entry.text << std::endl;
-          entry.text = glfwInfo.i18n->GetWord("consolelogerrorluainvalidsave");
-          glfwInfo.cmd->Add(entry);
+          entry.text = info.i18n->GetWord("consolelogerrorluainvalidsave");
+          info.cmd->Add(entry);
           std::cout << entry.text << std::endl;
           return;
         }
 
-        db::SaveCode(db, VERT);
-        db::SaveCode(db, FRAG);
-        db::SaveCode(db, LUA);
+        db::SaveCode(db, info.VERT);
+        db::SaveCode(db, info.FRAG);
+        db::SaveCode(db, info.LUA);
 
         gui::LogEntry entry;
         entry.type = gui::LogType::Info;
-        entry.text = glfwInfo.i18n->GetWord("consoleloginfosaveok");
-        glfwInfo.cmd->Add(entry);
+        entry.text = info.i18n->GetWord("consoleloginfosaveok");
+        info.cmd->Add(entry);
         std::cout << entry.text << std::endl;
       } catch (const std::exception &e) {
         gui::LogEntry entry;
         entry.type = gui::LogType::Error;
         entry.text = e.what();
-        glfwInfo.cmd->Add(entry);
+        info.cmd->Add(entry);
         std::cout << entry.text << std::endl;
-        entry.text = glfwInfo.i18n->GetWord("consolelogerrorluainvalidsave");
-        glfwInfo.cmd->Add(entry);
+        entry.text = info.i18n->GetWord("consolelogerrorluainvalidsave");
+        info.cmd->Add(entry);
         std::cout << entry.text << std::endl;
       }
     };
+
+    info.create = [&]() {
+      gui::NewShader newShader(&info);
+      auto shdr = newShader.Make();
+
+      info.shaderId = shdr.id;
+      info.shaderName = shdr.name;
+      info.VERT = shdr.vertexShader;
+      info.FRAG = shdr.fragmentShader;
+      info.LUA = shdr.luaCode;
+
+      vertEditor.SetCode(info.VERT.code);
+      string nTit = info.shaderName + "（" + info.i18n->GetWord("editorvertshader") + "）";
+      vertEditor.SetTitle(nTit + "###VertexEditor");
+
+      fragEditor.SetCode(info.FRAG.code);
+      nTit = info.shaderName + "（" + info.i18n->GetWord("editorfragshader") + "）";
+      fragEditor.SetTitle(nTit + "###FragmentEditor");
+
+      luaEditor.SetCode(info.LUA.code);
+      nTit = info.shaderName + "（" + info.i18n->GetWord("editorlua") + "）";
+      luaEditor.SetTitle(nTit + "###LuaEditor");
+
+      info.compile();
+
+      gui::LogEntry entry;
+      entry.type = gui::LogType::Info;
+      entry.text = info.i18n->GetWord("consoleloginfocreateok") + ", ID: " + std::to_string(info.shaderId);
+      info.cmd->Add(entry);
+      std::cout << entry.text << std::endl;
+    };
+#pragma endregion
 
     glfw.PollEvents();
 
     bool isManualKey = window.GetKey(GLFW_KEY_F1);
     bool isCompileKey = window.GetKey(GLFW_KEY_F5);
+
     bool ctrlMod = (window.GetKey(GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS || window.GetKey(GLFW_KEY_RIGHT_CONTROL) == GLFW_PRESS);
+    bool shiftMod = (window.GetKey(GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS || window.GetKey(GLFW_KEY_RIGHT_SHIFT) == GLFW_PRESS);
+    //bool altMod = (window.GetKey(GLFW_KEY_LEFT_ALT) == GLFW_PRESS || window.GetKey(GLFW_KEY_RIGHT_ALT) == GLFW_PRESS);
+
+    bool isNewKey = (window.GetKey(GLFW_KEY_N) == GLFW_PRESS && ctrlMod);
+    bool isOpenKey = (window.GetKey(GLFW_KEY_O) == GLFW_PRESS && ctrlMod);
     bool isSaveKey = (window.GetKey(GLFW_KEY_S) == GLFW_PRESS && ctrlMod);
+    bool isSaveAsKey = (window.GetKey(GLFW_KEY_S) == GLFW_PRESS && ctrlMod && shiftMod);
     bool isQuitKey = (window.GetKey(GLFW_KEY_Q) == GLFW_PRESS && ctrlMod);
     bool isAboutKey = (window.GetKey(GLFW_KEY_H) == GLFW_PRESS && ctrlMod);
     bool isSettingsKey = (window.GetKey(GLFW_KEY_COMMA) == GLFW_PRESS && ctrlMod);
 
     if (!isHold) {
       if (isCompileKey) {
-        glfwInfo.compile();
+        info.compile();
       }
 
+      if (isNewKey) {
+        info.create();
+      }
+
+      if (isOpenKey) {}
+
       if (isManualKey) {
-        glfwInfo.isManual = true;
+        info.isManual = true;
       }
 
       if (isSettingsKey) {
-        glfwInfo.isSettings = true;
+        info.isSettings = true;
       }
 
       if (isAboutKey) {
-        glfwInfo.isAbout = true;
+        info.isAbout = true;
       }
 
       if (isSaveKey) {
-        glfwInfo.save();
+        info.save();
       }
 
       if (isQuitKey) {
-        glfwInfo.isRunning = false;
+        info.isRunning = false;
       }
     }
 
-    isHold = isSaveKey || isCompileKey || isAboutKey || isQuitKey || isManualKey || isSettingsKey;
+    isHold = isSaveKey ||
+             isCompileKey ||
+             isAboutKey ||
+             isQuitKey ||
+             isManualKey ||
+             isSettingsKey ||
+             isNewKey ||
+             isOpenKey;
 
-    if (glfwInfo.isLangChange) {
-      string nTit = shaderName + "（" + glfwInfo.i18n->GetWord("editorvertshader") + "）";
+    if (info.isLangChange) {
+      string nTit = info.shaderName + "（" + info.i18n->GetWord("editorvertshader") + "）";
       vertEditor.SetTitle(nTit + "###VertexEditor");
-      nTit = shaderName + "（" + glfwInfo.i18n->GetWord("editorfragshader") + "）";
+      nTit = info.shaderName + "（" + info.i18n->GetWord("editorfragshader") + "）";
       fragEditor.SetTitle(nTit + "###FragmentEditor");
-      nTit = shaderName + "（" + glfwInfo.i18n->GetWord("editorlua") + "）";
+      nTit = info.shaderName + "（" + info.i18n->GetWord("editorlua") + "）";
       luaEditor.SetTitle(nTit + "###LuaEditor");
-      glfwInfo.isLangChange = false;
+      info.isLangChange = false;
     }
 
     if (window.GetAttrib(glfwpp::Attributes::Iconified) != 0) {
@@ -353,7 +416,7 @@ int main(void) {
       continue;
     }
 
-    gui::showTitleBar(glfwInfo);
+    gui::showTitleBar(info);
 
 #ifndef PRODUCTION_BUILD
     if (showDemo) ImGui::ShowDemoWindow(&showDemo);
@@ -362,12 +425,12 @@ int main(void) {
     vertEditor.Render();
     fragEditor.Render();
     luaEditor.Render();
-    glfwInfo.cmd->Draw(glfwInfo, glfwInfo.i18n->GetWord("editorconsole").c_str());
-    about.Draw(glfwInfo);
-    settings.Draw(glfwInfo);
-    manual.Draw(glfwInfo);
+    info.cmd->Draw(info, info.i18n->GetWord("editorconsole").c_str());
+    about.Draw(info);
+    settings.Draw(info);
+    manual.Draw(info);
 
-    viewport.Draw(glfwInfo);
+    viewport.Draw(info);
 
     ImGui::Render();
 

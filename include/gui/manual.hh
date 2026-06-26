@@ -42,7 +42,7 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace gui {
   class Manual {
     public:
-      void Draw(GlfwInfo &glfw);
+      void Draw(Info &info);
 
     private:
       void renderMarkdown(cstr text);

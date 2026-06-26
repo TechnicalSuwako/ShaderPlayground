@@ -40,6 +40,8 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <version.hh>
 #include <functional>
 #include <string>
+#include <cstdint>
+#include <database/shaderdata.hh>
 
 namespace gui {
   class ConsoleLog;
@@ -47,9 +49,10 @@ namespace gui {
 
 namespace db {
   class Locale;
+  struct CodeData;
 } // namespace db
 
-struct GlfwInfo {
+struct Info {
   glfwpp::Instance *instance;
   glfwpp::Window *window;
 
@@ -58,12 +61,20 @@ struct GlfwInfo {
   bool isManual = false;
   bool isSettings = false;
   bool isLangChange = false;
+  bool isNewShader = false;
 
   std::string version = version::full;
+  uint32_t shaderId = 0;
+  std::string shaderName = "";
+  db::CodeData VERT = {};
+  db::CodeData FRAG = {};
+  db::CodeData LUA = {};
+  std::string currentFile = "";
 
   gui::ConsoleLog *cmd;
   db::Locale *i18n;
 
   std::function<void()> compile;
   std::function<void()> save;
+  std::function<void()> create;
 };

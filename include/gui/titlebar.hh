@@ -40,5 +40,5 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <util/structs.hh>
 
 namespace gui {
-  void showTitleBar(GlfwInfo &glfw);
+  void showTitleBar(Info &info);
 } // namespace gui

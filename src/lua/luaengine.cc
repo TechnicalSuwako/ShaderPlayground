@@ -45,10 +45,10 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <gui/consolelog.hh>
 
 namespace lua {
-  LuaEngine::LuaEngine(const string &code, Program *prog, GlfwInfo *glfwInfo)
+  LuaEngine::LuaEngine(const string &code, Program *prog, Info *info)
     : m_Code(code)
     , m_Program(prog)
-    , m_GlfwInfo(glfwInfo)
+    , m_Info(info)
   {
     m_Lua = MakeAPI();
     Execute(m_Lua);
@@ -105,7 +105,7 @@ namespace lua {
     gui::LogEntry entry = {};
     entry.type = gui::LogType::Error;
     entry.text = err.what();
-    m_GlfwInfo->cmd->Add(entry);
+    m_Info->cmd->Add(entry);
     std::cerr << err.what() << std::endl;
   }
 
@@ -113,7 +113,7 @@ namespace lua {
     gui::LogEntry entry = {};
     entry.type = gui::LogType::Error;
     entry.text = err.what();
-    m_GlfwInfo->cmd->Add(entry);
+    m_Info->cmd->Add(entry);
     std::cerr << err.what() << std::endl;
   }
 
@@ -402,7 +402,7 @@ namespace lua {
       gui::LogEntry entry = {};
       entry.type = gui::LogType::Normal;
       entry.text = out;
-      m_GlfwInfo->cmd->Add(entry); (entry);
+      m_Info->cmd->Add(entry); (entry);
       std::cerr << entry.text << std::endl;
     };
   }
@@ -411,11 +411,11 @@ namespace lua {
     lua["le"]["sys"] = lua.create_table();
 
     lua["le"]["sys"]["get_time"] = [&]() -> f32 {
-      return (f32)m_GlfwInfo->instance->GetTime();
+      return (f32)m_Info->instance->GetTime();
     };
 
     lua["le"]["sys"]["get_delta_time"] = [&]() -> f32 {
-      f32 now = (f32)m_GlfwInfo->instance->GetTime();
+      f32 now = (f32)m_Info->instance->GetTime();
       f32 delta = now - m_LastTime;
       m_LastTime = now;
       if (delta > 1.f / 5) delta = 1.f / 5;
@@ -423,12 +423,12 @@ namespace lua {
     };
 
     lua["le"]["sys"]["get_timer_frequency"] = [&]() -> u64 {
-      return m_GlfwInfo->instance->GetTimerFrequency();
+      return m_Info->instance->GetTimerFrequency();
     };
 
     lua["le"]["sys"]["get_resolution"] = [&]() -> Vector2i {
       Vector2i size = {};
-      m_GlfwInfo->window->GetSize(&size.pos.x, &size.pos.y);
+      m_Info->window->GetSize(&size.pos.x, &size.pos.y);
       return size;
     };
 
@@ -442,12 +442,12 @@ namespace lua {
 
     lua["le"]["io"]["get_mouse"] = [&]() -> Vector2d {
       Vector2d cursor{};
-      m_GlfwInfo->window->GetCursorPos(&cursor.pos.x, &cursor.pos.y);
+      m_Info->window->GetCursorPos(&cursor.pos.x, &cursor.pos.y);
       return cursor;
     };
 
     lua["le"]["io"]["is_key_down"] = [&](int key) -> bool {
-      return m_GlfwInfo->window->GetKey(key) == GLFW_PRESS;
+      return m_Info->window->GetKey(key) == GLFW_PRESS;
     };
   }
 

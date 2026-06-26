@@ -44,7 +44,7 @@ namespace gui {
     m_Lines.push_back(entry);
   }
 
-  void ConsoleLog::Draw(GlfwInfo &info, cstr title) {
+  void ConsoleLog::Draw(Info &info, cstr title) {
     ImGui::Begin((string(title) + "###Console").c_str());
     if (ImGui::Button(info.i18n->GetWord("editorconsoleclear").c_str())) Clear();
     ImGui::Separator();

@@ -44,7 +44,7 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <ctime>
 
 namespace gui {
-  void showTitleBar(GlfwInfo &glfw) {
+  void showTitleBar(Info &info) {
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
@@ -123,9 +123,11 @@ namespace gui {
     ImGui::End();
 
     if (ImGui::BeginMainMenuBar()) {
-      if (ImGui::BeginMenu(glfw.i18n->GetWord("file").c_str())) {
-        if (ImGui::MenuItem(glfw.i18n->GetWord("filenew").c_str(), "CTRL+N", false, false)) {}
-        if (ImGui::MenuItem(glfw.i18n->GetWord("fileopen").c_str(), "Ctrl+O", false, false)) {}
+      if (ImGui::BeginMenu(info.i18n->GetWord("file").c_str())) {
+        if (ImGui::MenuItem(info.i18n->GetWord("filenew").c_str(), "CTRL+N")) {
+          info.create();
+        }
+        if (ImGui::MenuItem(info.i18n->GetWord("fileopen").c_str(), "Ctrl+O", false, false)) {}
         //if (ImGui::BeginMenu("最近使った物")) {
         //  ImGui::MenuItem("fish_hat.c");
         //  ImGui::MenuItem("fish_hat.inl");
@@ -137,45 +139,45 @@ namespace gui {
         //  }
         //  ImGui::EndMenu();
         //}
-        if (ImGui::MenuItem(glfw.i18n->GetWord("filesave").c_str(), "Ctrl+S")) {
-          glfw.save();
+        if (ImGui::MenuItem(info.i18n->GetWord("filesave").c_str(), "Ctrl+S")) {
+          info.save();
         }
 
         ImGui::Separator();
-        if (ImGui::MenuItem(glfw.i18n->GetWord("quit").c_str(), "CTRL+Q")) {
-          glfw.isRunning = false;
+        if (ImGui::MenuItem(info.i18n->GetWord("quit").c_str(), "CTRL+Q")) {
+          info.isRunning = false;
         }
         ImGui::EndMenu();
       }
 
-      if (ImGui::BeginMenu(glfw.i18n->GetWord("edit").c_str())) {
-        if (ImGui::MenuItem(glfw.i18n->GetWord("editundo").c_str(), "Ctrl+Z", false, false)) {}
-        if (ImGui::MenuItem(glfw.i18n->GetWord("editredo").c_str(), "Ctrl+Y", false, false)) {}
+      if (ImGui::BeginMenu(info.i18n->GetWord("edit").c_str())) {
+        if (ImGui::MenuItem(info.i18n->GetWord("editundo").c_str(), "Ctrl+Z", false, false)) {}
+        if (ImGui::MenuItem(info.i18n->GetWord("editredo").c_str(), "Ctrl+Y", false, false)) {}
         ImGui::Separator();
-        if (ImGui::MenuItem(glfw.i18n->GetWord("editcut").c_str(), "Ctrl+X", false, false)) {}
-        if (ImGui::MenuItem(glfw.i18n->GetWord("editcopy").c_str(), "Ctrl+C", false, false)) {}
-        if (ImGui::MenuItem(glfw.i18n->GetWord("editpaste").c_str(), "Ctrl+V", false, false)) {}
-        if (ImGui::MenuItem(glfw.i18n->GetWord("editduplicate").c_str(), "Ctrl+D", false, false)) {}
+        if (ImGui::MenuItem(info.i18n->GetWord("editcut").c_str(), "Ctrl+X", false, false)) {}
+        if (ImGui::MenuItem(info.i18n->GetWord("editcopy").c_str(), "Ctrl+C", false, false)) {}
+        if (ImGui::MenuItem(info.i18n->GetWord("editpaste").c_str(), "Ctrl+V", false, false)) {}
+        if (ImGui::MenuItem(info.i18n->GetWord("editduplicate").c_str(), "Ctrl+D", false, false)) {}
         ImGui::Separator();
-        if (ImGui::MenuItem(glfw.i18n->GetWord("settings").c_str(), "Ctrl+,")) {
-          glfw.isSettings = true;
+        if (ImGui::MenuItem(info.i18n->GetWord("settings").c_str(), "Ctrl+,")) {
+          info.isSettings = true;
         }
         ImGui::EndMenu();
       }
 
-      if (ImGui::BeginMenu(glfw.i18n->GetWord("build").c_str())) {
-        if (ImGui::MenuItem(glfw.i18n->GetWord("buildcompile").c_str(), "F5")) {
-          glfw.compile();
+      if (ImGui::BeginMenu(info.i18n->GetWord("build").c_str())) {
+        if (ImGui::MenuItem(info.i18n->GetWord("buildcompile").c_str(), "F5")) {
+          info.compile();
         }
         ImGui::EndMenu();
       }
 
-      if (ImGui::BeginMenu(glfw.i18n->GetWord("help").c_str())) {
-        if (ImGui::MenuItem(glfw.i18n->GetWord("helpmanual").c_str(), "F1")) {
-          glfw.isManual = true;
+      if (ImGui::BeginMenu(info.i18n->GetWord("help").c_str())) {
+        if (ImGui::MenuItem(info.i18n->GetWord("helpmanual").c_str(), "F1")) {
+          info.isManual = true;
         }
-        if (ImGui::MenuItem(glfw.i18n->GetWord("helpabout").c_str(), "CTRL+H")) {
-          glfw.isAbout = true;
+        if (ImGui::MenuItem(info.i18n->GetWord("helpabout").c_str(), "CTRL+H")) {
+          info.isAbout = true;
         }
         ImGui::EndMenu();
       }
@@ -183,12 +185,12 @@ namespace gui {
       ImGui::SameLine();
 
       f32 side;
-      if (glfw.i18n->GetCurrentLanguage().code == "ja_JP") side = 379.f;
+      if (info.i18n->GetCurrentLanguage().code == "ja_JP") side = 379.f;
       else side = 380.f;
 
       ImGui::SetCursorPosX(ImGui::GetWindowWidth() - side);
 
-      string fmt = glfw.i18n->GetWord("currentfps") + "： %.3f ms/frame (%.1f FPS)";
+      string fmt = info.i18n->GetWord("currentfps") + "： %.3f ms/frame (%.1f FPS)";
       ImGui::Text(fmt.c_str(), 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 
       ImGui::SameLine();

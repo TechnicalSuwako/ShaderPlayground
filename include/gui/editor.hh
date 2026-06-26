@@ -53,9 +53,13 @@ namespace gui {
       Editor(string title, string renderName, string code, Languages lang, ImFont *cjkFont, ImFont *monoFont);
       ~Editor();
 
-      TextEditor Get() const { return m_Editor; }
+      TextEditor &Get() { return m_Editor; }
+      const TextEditor &Get() const { return m_Editor; }
       void Render();
-      void SetCode(string code);
+      void SetCode(const string &code) {
+        m_Code = code;
+        m_Editor.SetText(code);
+      }
       void RenderStatusBar(TextEditor editor);
 
       void SetTitle(const string &title) { m_Title = title; }

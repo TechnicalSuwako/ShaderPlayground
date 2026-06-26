@@ -34,35 +34,7 @@ HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTIO
 CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-#pragma once
-
-#include <util/types.hh>
-
-struct Info;
-namespace db {
-  class Locale;
-} // namespace db
+#include <gui/openshader.hh>
 
 namespace gui {
-  enum class LogType {
-    Normal,
-    Info,
-    Warning,
-    Error,
-  };
-
-  struct LogEntry {
-    LogType type;
-    string text;
-  };
-
-  class ConsoleLog {
-    public:
-      void Add(LogEntry entry);
-      void Draw(Info &info, cstr title = "コンソール");
-      void Clear();
-
-    private:
-      vector<LogEntry> m_Lines;
-  };
 } // namespace gui

@@ -244,6 +244,8 @@ CREATE TABLE IF NOT EXISTS settings (
       createWord(db, 2, "consoleloginfosaveok", "Shaders and Lua have been saved.");
       createWord(db, 1, "consoleloginfolangchangeok", "言語を変更しました。");
       createWord(db, 2, "consoleloginfolangchangeok", "Language has been changed.");
+      createWord(db, 1, "consoleloginfocreateok", "新しいシェーダーを作成しました。保存するには、「CTRL + S」を押して下さい。");
+      createWord(db, 2, "consoleloginfocreateok", "New shader has been created. In order to save, press \"CTRL + S\".");
     }
 
     i64 shaderId = 0;

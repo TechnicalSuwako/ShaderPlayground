@@ -34,14 +34,83 @@ HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTIO
 CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-#pragma once
-
-#include <util/types.hh>
-#include <util/structs.hh>
+#include <gui/newshader.hh>
+#include <database/locale.hh>
 
 namespace gui {
-  class Settings {
-    public:
-      void Draw(Info &info);
-  }; // class Settings
+  NewShader::NewShader(Info *info) : m_Info(info) {}
+  NewShader::~NewShader() {}
+
+  db::ShaderData NewShader::Make() {
+    db::ShaderData newShader = {};
+    auto curLang = m_Info->i18n->GetCurrentLanguage().code;
+    newShader.id = 0;
+    if (curLang == "ja_JP") newShader.name = "(名無し)";
+    else newShader.name = "(Unnamed)";
+    newShader.description = "";
+
+    newShader.vertexShader.id = 0;
+    newShader.vertexShader.type = db::ShaderCodeType::GlslVertex;
+    newShader.vertexShader.code = getDefaultVert();
+    newShader.vertexShader.filename = "";
+
+    newShader.fragmentShader.id = 0;
+    newShader.fragmentShader.type = db::ShaderCodeType::GlslFragment;
+    newShader.fragmentShader.code = getDefaultFrag();
+    newShader.fragmentShader.filename = "";
+
+    newShader.luaCode.id = 0;
+    newShader.luaCode.type = db::ShaderCodeType::Lua;
+    newShader.luaCode.code = getDefaultLua();
+    newShader.luaCode.filename = "";
+
+    return newShader;
+  }
+  
+  ///////////////////////////
+
+  string NewShader::getDefaultVert() {
+    return R"(#version 460 core
+
+layout(location = 0) in vec2 aPosition;
+layout(location = 1) in vec3 aColor;
+out vec3 vColor;
+
+void main() {
+  vColor = aColor;
+  gl_Position = vec4(aPosition, 0.0, 1.0);
+})";
+  }
+  
+  string NewShader::getDefaultFrag() {
+    return R"(#version 460 core
+
+in vec3 vColor;
+out vec4 out_color;
+
+void main() {
+  out_color = vec4(vColor, 1.0);
+})";
+  }
+
+  string NewShader::getDefaultLua() {
+    return R"(local mesh = {
+  vertices = {
+     0,  .5,   1, 0, 0,
+   -.5, -.5,   0, 1, 0,
+    .5, -.5,   0, 0, 1
+  },
+  indices = { 0, 1, 2 },
+  
+  attributes = {
+    { location = 0, size = 2, stride = 20, offset = 0 }, -- position
+    { location = 1, size = 3, stride = 20, offset = 8 } -- uv
+  }
+}
+  
+le.gfx.set_mesh(mesh)
+  
+function update()
+end)";
+  }
 } // namespace gui
