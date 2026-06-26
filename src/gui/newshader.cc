@@ -94,7 +94,9 @@ void main() {
   }
 
   string NewShader::getDefaultLua() {
-    return R"(local mesh = {
+    return R"(local stride = le.sizeof("vec2") + le.sizeof("vec3")
+
+local mesh = {
   vertices = {
      0,  .5,   1, 0, 0,
    -.5, -.5,   0, 1, 0,
@@ -103,8 +105,18 @@ void main() {
   indices = { 0, 1, 2 },
   
   attributes = {
-    { location = 0, size = 2, stride = 20, offset = 0 }, -- position
-    { location = 1, size = 3, stride = 20, offset = 8 } -- uv
+    {
+      location = 0,
+      size = 2,
+      stride = stride,
+      offset = 0
+    }, -- position
+    {
+      location = 1,
+      size = 3,
+      stride = stride,
+      offset = le.sizeof("vec2")
+    } -- uv
   }
 }
   

@@ -420,8 +420,41 @@ namespace lua {
       gui::LogEntry entry = {};
       entry.type = gui::LogType::Normal;
       entry.text = out;
-      m_Info->cmd->Add(entry); (entry);
+      m_Info->cmd->Add(entry);
       std::cerr << entry.text << std::endl;
+    };
+
+    lua["le"]["sizeof"] = [&](const string &type) -> size_t {
+      static const std::unordered_map<string, size_t> sizes = {
+        { "float", sizeof(f32) },
+        { "double", sizeof(f64) },
+        { "int", sizeof(i32) },
+        { "uint", sizeof(u32) },
+
+        { "vec2", sizeof(f32) * 2 },
+        { "vec3", sizeof(f32) * 3 },
+        { "vec4", sizeof(f32) * 4 },
+
+        { "ivec2", sizeof(i32) * 2 },
+        { "ivec3", sizeof(i32) * 3 },
+        { "ivec4", sizeof(i32) * 4 },
+
+        { "uvec2", sizeof(u32) * 2 },
+        { "uvec3", sizeof(u32) * 3 },
+        { "uvec4", sizeof(u32) * 4 },
+      };
+
+      auto it = sizes.find(type);
+      if (it == sizes.end()) {
+        gui::LogEntry entry = {};
+        entry.type = gui::LogType::Error;
+        entry.text = "不正な値類： " + type;
+        m_Info->cmd->Add(entry);
+        std::cerr << entry.text << std::endl;
+        return 0;
+      }
+
+      return it->second;
     };
   }
 
