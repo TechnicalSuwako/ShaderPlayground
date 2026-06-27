@@ -183,20 +183,12 @@ void main() { })";
   gui::Manual manual;
 
   // データベースからシェーダーとLuaコードの受け取り
-  vector<db::ShaderData> codeMap = db::GetAllShaders(db);
-  info.shaderId;
-  info.shaderName;
-  info.VERT = {};
-  info.FRAG = {};
-  info.LUA = {};
-
-  for (const auto &c : codeMap) {
-    info.shaderId = c.id;
-    info.shaderName = c.name;
-    info.VERT = c.vertexShader;
-    info.FRAG = c.fragmentShader;
-    info.LUA = c.luaCode;
-  }
+  db::ShaderData shaderData = db::GetShader(db, 1);
+  info.shaderId = shaderData.id;
+  info.shaderName = shaderData.name;
+  info.VERT = shaderData.vertexShader;
+  info.FRAG = shaderData.fragmentShader;
+  info.LUA = shaderData.luaCode;
 
   string title = info.shaderName + "（" + info.i18n->GetWord("editorvertshader") + "）";
   gui::Editor vertEditor((title + "###VertexEditor").c_str(), "VertexEditor", info.VERT.code, gui::Glsl, ge.GetCjkFont(), ge.GetMonoFont());
@@ -399,6 +391,40 @@ void main() { })";
       }
     };
 
+    info.saveAs = [&]() {
+      if (ImGui::BeginPopupModal(info.i18n->GetWord("filesaveasshader").c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+        ImGui::Text(info.i18n->GetWord("fileshadername").c_str());
+        ImGui::SameLine();
+        static char str0[128] = "new";
+        ImGui::InputText("input text", str0, IM_COUNTOF(str0));
+
+        ImGui::Separator();
+
+        if (ImGui::Button(info.i18n->GetWord("cancel").c_str())) {
+          ImGui::CloseCurrentPopup();
+        }
+
+        if (ImGui::Button(info.i18n->GetWord("filesave").c_str())) {
+          info.shaderName = string(str0);
+          info.VERT.code = vertEditor.Get().GetText();
+          info.FRAG.code = fragEditor.Get().GetText();
+          info.LUA.code = luaEditor.Get().GetText();
+
+          gui::SaveShader saveShader(&info);
+          saveShader.Save(db);
+          db::ShaderData shdr = db::GetShader(db, db::GetLastShaderID(db));
+          info.shaderId = shdr.id;
+          info.shaderName = shdr.name;
+          info.VERT = shdr.vertexShader;
+          info.FRAG = shdr.fragmentShader;
+          info.LUA = shdr.luaCode;
+          ImGui::CloseCurrentPopup();
+        }
+
+        ImGui::EndPopup();
+      }
+    };
+
     info.create = [&]() {
       if (ImGui::BeginPopupModal(info.i18n->GetWord("filenewcreateshader").c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
         if (ImGui::Button(info.i18n->GetWord("filenew2dshader").c_str(), ImVec2(200, 0))) {
@@ -519,8 +545,8 @@ void main() { })";
 
     bool isNewKey = (window.GetKey(GLFW_KEY_N) == GLFW_PRESS && ctrlMod);
     bool isOpenKey = (window.GetKey(GLFW_KEY_O) == GLFW_PRESS && ctrlMod);
-    bool isSaveKey = (window.GetKey(GLFW_KEY_S) == GLFW_PRESS && ctrlMod);
     bool isSaveAsKey = (window.GetKey(GLFW_KEY_S) == GLFW_PRESS && ctrlMod && shiftMod);
+    bool isSaveKey = (window.GetKey(GLFW_KEY_S) == GLFW_PRESS && ctrlMod);
     bool isQuitKey = (window.GetKey(GLFW_KEY_Q) == GLFW_PRESS && ctrlMod);
     bool isAboutKey = (window.GetKey(GLFW_KEY_H) == GLFW_PRESS && ctrlMod);
     bool isSettingsKey = (window.GetKey(GLFW_KEY_COMMA) == GLFW_PRESS && ctrlMod);
@@ -536,6 +562,15 @@ void main() { })";
 
       if (isOpenKey) {}
 
+      if (isSaveAsKey) {
+        info.showSaveAsShaderPopup = true;
+      }
+
+      if (isSaveKey) {
+        if (info.shaderId == 0) info.showSaveAsShaderPopup = true;
+        else info.save();
+      }
+
       if (isManualKey) {
         info.isManual = true;
       }
@@ -546,10 +581,6 @@ void main() { })";
 
       if (isAboutKey) {
         info.isAbout = true;
-      }
-
-      if (isSaveKey) {
-        info.save();
       }
 
       if (isQuitKey) {
@@ -583,12 +614,18 @@ void main() { })";
 
     gui::showTitleBar(info);
 
+    if (info.showSaveAsShaderPopup) {
+      ImGui::OpenPopup(info.i18n->GetWord("filesaveasshader").c_str());
+      info.showSaveAsShaderPopup = false;
+    }
+
     if (info.showNewShaderPopup) {
       ImGui::OpenPopup(info.i18n->GetWord("filenewcreateshader").c_str());
       info.showNewShaderPopup = false;
     }
 
     info.create();
+    info.saveAs();
     info.compile();
 
 #ifndef PRODUCTION_BUILD

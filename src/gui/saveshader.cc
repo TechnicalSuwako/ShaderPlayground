@@ -34,52 +34,33 @@ HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTIO
 CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-#pragma once
-
-#include <util/glfwpp.hh>
-#include <version.hh>
-#include <functional>
-#include <string>
-#include <cstdint>
+#include <gui/saveshader.hh>
+#include <gui/consolelog.hh>
+#include <database/locale.hh>
 #include <database/shaderdata.hh>
+#include <imgui.h>
+#include <iostream>
 
 namespace gui {
-  class ConsoleLog;
+  void SaveShader::Save(sqlitepp::Instance &db) {
+    db::ShaderData saveShader = {};
+    saveShader.name = m_Info->shaderName;
+    saveShader.description = "";
+    saveShader.vertexShader.filename = m_Info->shaderName + ".vert";
+    saveShader.vertexShader.type = db::ShaderCodeType::GlslVertex;
+    saveShader.vertexShader.code = m_Info->VERT.code;
+    saveShader.fragmentShader.filename = m_Info->shaderName + ".frag";
+    saveShader.fragmentShader.type = db::ShaderCodeType::GlslFragment;
+    saveShader.fragmentShader.code = m_Info->FRAG.code;
+    saveShader.luaCode.filename = m_Info->shaderName + ".lua";
+    saveShader.luaCode.type = db::ShaderCodeType::Lua;
+    saveShader.luaCode.code = m_Info->LUA.code;
+
+    db::SaveNewShader(db, saveShader);
+
+    LogEntry entry;
+    entry.text = saveShader.name;
+    entry.type = LogType::Normal;
+    m_Info->cmd->Add(entry);
+  }
 } // namespace gui
-
-namespace db {
-  class Locale;
-  struct CodeData;
-} // namespace db
-
-struct Info {
-  glfwpp::Instance *instance;
-  glfwpp::Window *window;
-
-  bool isRunning = true;
-  bool isAbout = false;
-  bool isManual = false;
-  bool isSettings = false;
-  bool isLangChange = false;
-
-  bool showNewShaderPopup = false;
-  bool showSaveAsShaderPopup = false;
-  bool viewportFocused = false;
-  bool pendingCompile = false;
-
-  std::string version = version::full;
-  uint32_t shaderId = 0;
-  std::string shaderName = "";
-  db::CodeData VERT = {};
-  db::CodeData FRAG = {};
-  db::CodeData LUA = {};
-  std::string currentFile = "";
-
-  gui::ConsoleLog *cmd;
-  db::Locale *i18n;
-
-  std::function<void()> compile;
-  std::function<void()> save;
-  std::function<void()> create;
-  std::function<void()> saveAs;
-};

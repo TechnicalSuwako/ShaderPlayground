@@ -48,10 +48,9 @@ namespace gui {
 
   class NewShader {
     public:
-      NewShader(Info *info);
-      ~NewShader();
+      NewShader(Info *info) : m_Info(info) {}
+      ~NewShader() {}
 
-      void DrawPopup();
       db::ShaderData Make(ShaderType type = ShaderType::Simple2D);
 
     private:

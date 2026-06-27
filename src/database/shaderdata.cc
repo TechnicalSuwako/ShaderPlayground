@@ -41,6 +41,38 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <cassert>
 
 namespace db {
+  void getShaderCode(sqlitepp::Instance &db, ShaderData &data) {
+    sqlitepp::Stmt stmt(db.GetDB());
+    stmt.Prepare("SELECT id, code_type, code, filename FROM shader_code WHERE shader_id = ?;");
+    stmt.BindInt(1, data.id);
+
+    while (stmt.Step() == SQLITE_ROW) {
+      u32 id = stmt.ColumnInt(0);
+      ShaderCodeType type = static_cast<ShaderCodeType>(stmt.ColumnInt(1));
+      string code = stmt.ColumnText(2);
+      string filename = stmt.ColumnText(3);
+
+      if (type == ShaderCodeType::GlslVertex) {
+        data.vertexShader.id = id;
+        data.vertexShader.type = type;
+        data.vertexShader.code = code;
+        data.vertexShader.filename = filename;
+      } else if (type == ShaderCodeType::GlslFragment) {
+        data.fragmentShader.id = id;
+        data.fragmentShader.type = type;
+        data.fragmentShader.code = code;
+        data.fragmentShader.filename = filename;
+      } else if (type == ShaderCodeType::Lua) {
+        data.luaCode.id = id;
+        data.luaCode.type = type;
+        data.luaCode.code = code;
+        data.luaCode.filename = filename;
+      } else {
+        throw std::exception("未対応コード類。");
+      }
+    }
+  }
+
   vector<ShaderData> GetAllShaders(sqlitepp::Instance &db) {
     vector<ShaderData> out;
 
@@ -52,43 +84,52 @@ namespace db {
       data.id = stmt.ColumnInt(0);
       data.name = stmt.ColumnText(1);
       data.description = stmt.ColumnText(2);
-
-      {
-        sqlitepp::Stmt codeStmt(db.GetDB());
-        codeStmt.Prepare("SELECT id, code_type, code, filename FROM shader_code WHERE shader_id = ?;");
-        codeStmt.BindInt(1, data.id);
-
-        while (codeStmt.Step() == SQLITE_ROW) {
-          u32 id = codeStmt.ColumnInt(0);
-          ShaderCodeType type = static_cast<ShaderCodeType>(codeStmt.ColumnInt(1));
-          string code = codeStmt.ColumnText(2);
-          string filename = codeStmt.ColumnText(3);
-
-          if (type == ShaderCodeType::GlslVertex) {
-            data.vertexShader.id = id;
-            data.vertexShader.type = type;
-            data.vertexShader.code = code;
-            data.vertexShader.filename = filename;
-          } else if (type == ShaderCodeType::GlslFragment) {
-            data.fragmentShader.id = id;
-            data.fragmentShader.type = type;
-            data.fragmentShader.code = code;
-            data.fragmentShader.filename = filename;
-          } else if (type == ShaderCodeType::Lua) {
-            data.luaCode.id = id;
-            data.luaCode.type = type;
-            data.luaCode.code = code;
-            data.luaCode.filename = filename;
-          } else {
-            throw std::exception("未対応コード類。");
-          }
-        }
-      }
+      getShaderCode(db, data);
 
       out.push_back(std::move(data));
     }
 
     return out;
+  }
+
+  ShaderData GetShader(sqlitepp::Instance &db, u32 id) {
+    ShaderData data = {};
+    sqlitepp::Stmt stmt(db.GetDB());
+    stmt.Prepare("SELECT id, name, description FROM shaders WHERE id = ?;");
+    stmt.BindInt(1, id);
+
+    while (stmt.Step() == SQLITE_ROW) {
+      data.id = stmt.ColumnInt(0);
+      data.name = stmt.ColumnText(1);
+      data.description = stmt.ColumnText(2);
+      getShaderCode(db, data);
+    }
+
+    return data;
+  }
+
+  void insertShaderCode(sqlitepp::Instance &db, const CodeData &data, u32 id) {
+    sqlitepp::Stmt stmt(db.GetDB());
+    stmt.Prepare("INSERT INTO shader_code (shader_id, code_type, code, filename) VALUES (?, ?, ?, ?);");
+    stmt.BindInt(1, id);
+    stmt.BindInt(2, static_cast<u32>(data.type));
+    stmt.BindText(3, data.code);
+    stmt.BindText(4, data.filename);
+    assert(stmt.Step() == SQLITE_DONE && "シェーダーコードの保存に失敗。\n");
+  }
+
+  void SaveNewShader(sqlitepp::Instance &db, const ShaderData &data) {
+    sqlitepp::Stmt stmt(db.GetDB());
+    stmt.Prepare("INSERT INTO shaders (name, description) VALUES (?, ?);");
+
+    stmt.BindText(1, data.name);
+    stmt.BindText(2, data.description);
+
+    assert(stmt.Step() == SQLITE_DONE && "シェーダーの保存に失敗。\n");
+    u32 id = GetLastShaderID(db);
+    insertShaderCode(db, data.vertexShader, id);
+    insertShaderCode(db, data.fragmentShader, id);
+    insertShaderCode(db, data.luaCode, id);
   }
 
   void SaveCode(sqlitepp::Instance &db, const CodeData &data) {
@@ -100,5 +141,11 @@ namespace db {
     stmt.BindInt(3, data.id);
 
     assert(stmt.Step() == SQLITE_DONE && "コードの保存に失敗。\n");
+  }
+
+  u32 GetLastShaderID(sqlitepp::Instance &db) {
+    sqlitepp::Stmt stmt(db.GetDB());
+    stmt.Prepare("SELECT MAX(id) FROM shaders;");
+    return (stmt.Step() == SQLITE_ROW) ? stmt.ColumnInt(0) : 0;
   }
 } // namespace db

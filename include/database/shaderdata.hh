@@ -61,5 +61,8 @@ namespace db {
   };
 
   vector<ShaderData> GetAllShaders(sqlitepp::Instance &db);
+  ShaderData GetShader(sqlitepp::Instance &db, u32 id);
+  void SaveNewShader(sqlitepp::Instance &db, const ShaderData &data);
   void SaveCode(sqlitepp::Instance &db, const CodeData &data);
+  u32 GetLastShaderID(sqlitepp::Instance &db);
 } // namespace db

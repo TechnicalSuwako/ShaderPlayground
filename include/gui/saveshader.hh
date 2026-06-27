@@ -36,50 +36,18 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 #pragma once
 
-#include <util/glfwpp.hh>
-#include <version.hh>
-#include <functional>
-#include <string>
-#include <cstdint>
-#include <database/shaderdata.hh>
+#include <util/types.hh>
+#include <util/structs.hh>
 
 namespace gui {
-  class ConsoleLog;
+  class SaveShader {
+    public:
+      SaveShader(Info *info) : m_Info(info) {}
+      ~SaveShader() {}
+
+      void Save(sqlitepp::Instance &db);
+
+    private:
+      Info *m_Info;
+  }; // class SaveShader
 } // namespace gui
-
-namespace db {
-  class Locale;
-  struct CodeData;
-} // namespace db
-
-struct Info {
-  glfwpp::Instance *instance;
-  glfwpp::Window *window;
-
-  bool isRunning = true;
-  bool isAbout = false;
-  bool isManual = false;
-  bool isSettings = false;
-  bool isLangChange = false;
-
-  bool showNewShaderPopup = false;
-  bool showSaveAsShaderPopup = false;
-  bool viewportFocused = false;
-  bool pendingCompile = false;
-
-  std::string version = version::full;
-  uint32_t shaderId = 0;
-  std::string shaderName = "";
-  db::CodeData VERT = {};
-  db::CodeData FRAG = {};
-  db::CodeData LUA = {};
-  std::string currentFile = "";
-
-  gui::ConsoleLog *cmd;
-  db::Locale *i18n;
-
-  std::function<void()> compile;
-  std::function<void()> save;
-  std::function<void()> create;
-  std::function<void()> saveAs;
-};

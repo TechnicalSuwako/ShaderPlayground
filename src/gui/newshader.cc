@@ -39,21 +39,6 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <imgui.h>
 
 namespace gui {
-  NewShader::NewShader(Info *info) : m_Info(info) {}
-  NewShader::~NewShader() {}
-
-  void NewShader::DrawPopup() {
-    if (ImGui::BeginPopupModal("NewShaderPopup", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-      ImGui::Text(m_Info->i18n->GetWord("filenewcreateshader").c_str());
-      ImGui::Separator();
-
-      if (ImGui::Button("2D Shader", ImVec2(200, 0))) {
-        Make(gui::ShaderType::Simple2D);
-        m_Info->create();
-      }
-    }
-  }
-
   db::ShaderData NewShader::Make(ShaderType type) {
     db::ShaderData newShader = {};
     auto curLang = m_Info->i18n->GetCurrentLanguage().code;
