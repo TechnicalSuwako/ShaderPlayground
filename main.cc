@@ -420,10 +420,6 @@ void main() { })";
             info.LUA = shaderData.luaCode;
 
             vertEditor.SetCode(info.VERT.code);
-            fragEditor.SetCode(info.FRAG.code);
-            luaEditor.SetCode(info.LUA.code);
-
-            vertEditor.SetCode(info.VERT.code);
             string nTit = info.shaderName + "（" + info.i18n->GetWord("editorvertshader") + "）";
             vertEditor.SetTitle(nTit + "###VertexEditor");
 
@@ -471,6 +467,16 @@ void main() { })";
           info.VERT = shdr.vertexShader;
           info.FRAG = shdr.fragmentShader;
           info.LUA = shdr.luaCode;
+
+          string nTit = info.shaderName + "（" + info.i18n->GetWord("editorvertshader") + "）";
+          vertEditor.SetTitle(nTit + "###VertexEditor");
+
+          nTit = info.shaderName + "（" + info.i18n->GetWord("editorfragshader") + "）";
+          fragEditor.SetTitle(nTit + "###FragmentEditor");
+
+          nTit = info.shaderName + "（" + info.i18n->GetWord("editorlua") + "）";
+          luaEditor.SetTitle(nTit + "###LuaEditor");
+
           ImGui::CloseCurrentPopup();
         }
 
