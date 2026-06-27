@@ -63,9 +63,11 @@ struct Info {
   bool isLangChange = false;
 
   bool showNewShaderPopup = false;
+  bool showOpenShaderPopup = false;
   bool showSaveAsShaderPopup = false;
   bool viewportFocused = false;
   bool pendingCompile = false;
+  bool closePopup = false;
 
   std::string version = version::full;
   uint32_t shaderId = 0;
@@ -81,5 +83,6 @@ struct Info {
   std::function<void()> compile;
   std::function<void()> save;
   std::function<void()> create;
+  std::function<void()> open;
   std::function<void()> saveAs;
 };

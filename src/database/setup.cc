@@ -190,6 +190,8 @@ CREATE TABLE IF NOT EXISTS settings (
       createWord(db, 2, "filenewsceneshader", "Scene Shader");
       createWord(db, 1, "fileopen", "開く(O)...");
       createWord(db, 2, "fileopen", "Open...");
+      createWord(db, 1, "fileopenshader", "シェーダーの開く");
+      createWord(db, 2, "fileopenshader", "Open Shader");
       createWord(db, 1, "filesave", "保存(S)");
       createWord(db, 2, "filesave", "Save");
       createWord(db, 1, "filesaveas", "名前を付けて保存(A)...");

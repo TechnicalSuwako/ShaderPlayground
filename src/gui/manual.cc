@@ -46,6 +46,7 @@ namespace gui {
 
     ImGui::SetNextWindowSize({ 600, 700 }, ImGuiCond_Appearing);
     ImGui::Begin(info.i18n->GetWord("helpmanual").c_str(), &info.isManual, flags);
+    //if (info.closePopup) ImGui::CloseW
 
     if (ImGui::BeginTabBar("ManualTabs")) {
       if (ImGui::BeginTabItem(info.i18n->GetWord("helpmanualoverview").c_str())) {

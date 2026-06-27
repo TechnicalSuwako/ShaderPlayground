@@ -125,9 +125,11 @@ namespace gui {
     if (ImGui::BeginMainMenuBar()) {
       if (ImGui::BeginMenu(info.i18n->GetWord("file").c_str())) {
         if (ImGui::MenuItem(info.i18n->GetWord("filenew").c_str(), "CTRL+N")) {
-          info.create();
+          info.showNewShaderPopup = true;
         }
-        if (ImGui::MenuItem(info.i18n->GetWord("fileopen").c_str(), "Ctrl+O", false, false)) {}
+        if (ImGui::MenuItem(info.i18n->GetWord("fileopen").c_str(), "Ctrl+O")) {
+          info.showOpenShaderPopup = true;
+        }
         //if (ImGui::BeginMenu("最近使った物")) {
         //  ImGui::MenuItem("fish_hat.c");
         //  ImGui::MenuItem("fish_hat.inl");
@@ -141,6 +143,9 @@ namespace gui {
         //}
         if (ImGui::MenuItem(info.i18n->GetWord("filesave").c_str(), "Ctrl+S")) {
           info.save();
+        }
+        if (ImGui::MenuItem(info.i18n->GetWord("filesaveas").c_str(), "Ctrl+Shift+S")) {
+          info.showSaveAsShaderPopup = true;
         }
 
         ImGui::Separator();

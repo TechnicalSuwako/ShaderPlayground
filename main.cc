@@ -335,12 +335,7 @@ void main() { })";
 
     info.save = [&]() {
       if (info.shaderId == 0) {
-        gui::LogEntry entry;
-        entry.type = gui::LogType::Warning;
-        std::cout << entry.text << std::endl;
-        entry.text = "TODO: 保存ダイアログボックス関数は開発中・・・";
-        info.cmd->Add(entry);
-        std::cout << entry.text << std::endl;
+        info.showSaveAsShaderPopup = true;
         return;
       }
 
@@ -388,6 +383,64 @@ void main() { })";
         entry.text = info.i18n->GetWord("consolelogerrorluainvalidsave");
         info.cmd->Add(entry);
         std::cout << entry.text << std::endl;
+      }
+    };
+
+    info.open = [&]() {
+      static i32 selectedId = -1;
+      ImGui::SetNextWindowSize(ImVec2(500, 400), ImGuiCond_FirstUseEver);
+      if (ImGui::BeginPopupModal(info.i18n->GetWord("fileopenshader").c_str(), nullptr)) {
+        vector <db::ShaderData > shdrs = db::GetAllShaders(db);
+        ImGui::BeginChild("ShaderList", ImVec2(0, 300), true);
+
+        for (const auto &s : shdrs) {
+          bool sel = (selectedId == s.id);
+
+          if (ImGui::Selectable(s.name.c_str(), sel)) {
+            selectedId = s.id;
+          }
+        }
+
+        ImGui::EndChild();
+        ImGui::Separator();
+
+        if (ImGui::Button(info.i18n->GetWord("cancel").c_str())) {
+          ImGui::CloseCurrentPopup();
+        }
+
+        ImGui::SameLine();
+
+        if (ImGui::Button(info.i18n->GetWord("fileopen").c_str())) {
+          if (selectedId != -1) {
+            db::ShaderData shaderData = db::GetShader(db, selectedId);
+            info.shaderId = shaderData.id;
+            info.shaderName = shaderData.name;
+            info.VERT = shaderData.vertexShader;
+            info.FRAG = shaderData.fragmentShader;
+            info.LUA = shaderData.luaCode;
+
+            vertEditor.SetCode(info.VERT.code);
+            fragEditor.SetCode(info.FRAG.code);
+            luaEditor.SetCode(info.LUA.code);
+
+            vertEditor.SetCode(info.VERT.code);
+            string nTit = info.shaderName + "（" + info.i18n->GetWord("editorvertshader") + "）";
+            vertEditor.SetTitle(nTit + "###VertexEditor");
+
+            fragEditor.SetCode(info.FRAG.code);
+            nTit = info.shaderName + "（" + info.i18n->GetWord("editorfragshader") + "）";
+            fragEditor.SetTitle(nTit + "###FragmentEditor");
+
+            luaEditor.SetCode(info.LUA.code);
+            nTit = info.shaderName + "（" + info.i18n->GetWord("editorlua") + "）";
+            luaEditor.SetTitle(nTit + "###LuaEditor");
+
+            info.pendingCompile = true;
+          }
+          ImGui::CloseCurrentPopup();
+        }
+
+        ImGui::EndPopup();
       }
     };
 
@@ -539,6 +592,8 @@ void main() { })";
     bool isManualKey = window.GetKey(GLFW_KEY_F1);
     bool isCompileKey = window.GetKey(GLFW_KEY_F5);
 
+    bool isEscKey = window.GetKey(GLFW_KEY_ESCAPE);
+
     bool ctrlMod = (window.GetKey(GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS || window.GetKey(GLFW_KEY_RIGHT_CONTROL) == GLFW_PRESS);
     bool shiftMod = (window.GetKey(GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS || window.GetKey(GLFW_KEY_RIGHT_SHIFT) == GLFW_PRESS);
     //bool altMod = (window.GetKey(GLFW_KEY_LEFT_ALT) == GLFW_PRESS || window.GetKey(GLFW_KEY_RIGHT_ALT) == GLFW_PRESS);
@@ -560,7 +615,9 @@ void main() { })";
         info.showNewShaderPopup = true;
       }
 
-      if (isOpenKey) {}
+      if (isOpenKey) {
+        info.showOpenShaderPopup = true;
+      }
 
       if (isSaveAsKey) {
         info.showSaveAsShaderPopup = true;
@@ -569,6 +626,10 @@ void main() { })";
       if (isSaveKey) {
         if (info.shaderId == 0) info.showSaveAsShaderPopup = true;
         else info.save();
+      }
+
+      if (isEscKey) {
+        info.closePopup = true;
       }
 
       if (isManualKey) {
@@ -619,12 +680,18 @@ void main() { })";
       info.showSaveAsShaderPopup = false;
     }
 
+    if (info.showOpenShaderPopup) {
+      ImGui::OpenPopup(info.i18n->GetWord("fileopenshader").c_str());
+      info.showOpenShaderPopup = false;
+    }
+
     if (info.showNewShaderPopup) {
       ImGui::OpenPopup(info.i18n->GetWord("filenewcreateshader").c_str());
       info.showNewShaderPopup = false;
     }
 
     info.create();
+    info.open();
     info.saveAs();
     info.compile();
 
