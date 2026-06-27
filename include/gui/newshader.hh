@@ -40,13 +40,19 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <util/structs.hh>
 
 namespace gui {
+  enum class ShaderType {
+    Simple2D,
+    Simple3D,
+    Scene,
+  };
+
   class NewShader {
     public:
       NewShader(Info *info);
       ~NewShader();
 
       void DrawPopup();
-      db::ShaderData Make(bool is3D = false);
+      db::ShaderData Make(ShaderType type = ShaderType::Simple2D);
 
     private:
       string getDefaultVert2D();
@@ -56,6 +62,10 @@ namespace gui {
       string getDefaultVert3D();
       string getDefaultFrag3D();
       string getDefaultLua3D();
+
+      string getDefaultVertScene();
+      string getDefaultFragScene();
+      string getDefaultLuaScene();
 
     private:
       Info *m_Info;

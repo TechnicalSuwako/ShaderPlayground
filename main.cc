@@ -87,8 +87,69 @@ int main(void) {
     return -1;
   }
 
+  // シャドーマッピング
+#pragma region shadowmap
+  constexpr u32 SHADOW_WIDTH = 1024;
+  constexpr u32 SHADOW_HEIGHT = 1024;
+
+  GLuint shadowFBO;
+  glGenFramebuffers(1, &shadowFBO);
+
+  GLuint shadowMap;
+  glGenTextures(1, &shadowMap);
+  glBindTexture(GL_TEXTURE_2D, shadowMap);
+
+  glTexImage2D(
+    GL_TEXTURE_2D,
+    0,
+    GL_DEPTH_COMPONENT,
+    SHADOW_WIDTH,
+    SHADOW_HEIGHT,
+    0,
+    GL_DEPTH_COMPONENT,
+    GL_FLOAT,
+    nullptr
+  );
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+
+  float borderColor[] = { 1.f, 1.f, 1.f, 1.f };
+  glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+
+  glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
+  glFramebufferTexture2D(
+    GL_FRAMEBUFFER,
+    GL_DEPTH_ATTACHMENT,
+    GL_TEXTURE_2D,
+    shadowMap,
+    0
+  );
+
+  glDrawBuffer(GL_NONE);
+  glReadBuffer(GL_NONE);
+
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+  string depthVertSource = R"(#version 460 core
+layout(location = 0) in vec3 aPosition;
+
+uniform mat4 uLightSpace;
+uniform mat4 uModel;
+
+void main() {
+  gl_Position = uLightSpace * uModel * vec4(aPosition, 1.0);
+})";
+
+  string depthFragSource = R"(#version 460 core
+void main() { })";
+#pragma endregion
+
   // 3Dを有効
   glEnable(GL_DEPTH_TEST);
+  glDepthFunc(GL_LESS);
   //glEnable(GL_CULL_FACE);
 
   // ImGui設定
@@ -181,6 +242,12 @@ int main(void) {
   bool isHold = false;
   gui::About about;
   gui::Settings settings;
+
+#pragma region shadowmap
+  Shader depthVertex(depthVertSource, GL_VERTEX_SHADER);
+  Shader depthFragment(depthFragSource, GL_FRAGMENT_SHADER);
+  Program depthProgram(depthVertex, depthFragment);
+#pragma endregion
 
   // メインレンダリングループ
   while (!window.ShouldClose() && info.isRunning) {
@@ -336,7 +403,7 @@ int main(void) {
       if (ImGui::BeginPopupModal(info.i18n->GetWord("filenewcreateshader").c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
         if (ImGui::Button(info.i18n->GetWord("filenew2dshader").c_str(), ImVec2(200, 0))) {
           gui::NewShader newShader(&info);
-          auto shdr = newShader.Make(false);
+          auto shdr = newShader.Make(gui::ShaderType::Simple2D);
           info.shaderId = shdr.id;
           info.shaderName = shdr.name;
           info.VERT = shdr.vertexShader;
@@ -368,7 +435,39 @@ int main(void) {
 
         if (ImGui::Button(info.i18n->GetWord("filenew3dshader").c_str(), ImVec2(200, 0))) {
           gui::NewShader newShader(&info);
-          auto shdr = newShader.Make(true);
+          auto shdr = newShader.Make(gui::ShaderType::Simple3D);
+          info.shaderId = shdr.id;
+          info.shaderName = shdr.name;
+          info.VERT = shdr.vertexShader;
+          info.FRAG = shdr.fragmentShader;
+          info.LUA = shdr.luaCode;
+
+          vertEditor.SetCode(info.VERT.code);
+          string nTit = info.shaderName + "（" + info.i18n->GetWord("editorvertshader") + "）";
+          vertEditor.SetTitle(nTit + "###VertexEditor");
+
+          fragEditor.SetCode(info.FRAG.code);
+          nTit = info.shaderName + "（" + info.i18n->GetWord("editorfragshader") + "）";
+          fragEditor.SetTitle(nTit + "###FragmentEditor");
+
+          luaEditor.SetCode(info.LUA.code);
+          nTit = info.shaderName + "（" + info.i18n->GetWord("editorlua") + "）";
+          luaEditor.SetTitle(nTit + "###LuaEditor");
+
+          info.pendingCompile = true;
+
+          gui::LogEntry entry;
+          entry.type = gui::LogType::Info;
+          entry.text = info.i18n->GetWord("consoleloginfocreateok");
+          info.cmd->Add(entry);
+          std::cout << entry.text << std::endl;
+
+          ImGui::CloseCurrentPopup();
+        }
+
+        if (ImGui::Button(info.i18n->GetWord("filenewsceneshader").c_str(), ImVec2(200, 0))) {
+          gui::NewShader newShader(&info);
+          auto shdr = newShader.Make(gui::ShaderType::Scene);
           info.shaderId = shdr.id;
           info.shaderName = shdr.name;
           info.VERT = shdr.vertexShader;
@@ -508,6 +607,74 @@ int main(void) {
 
     ImGui::Render();
 
+#pragma region shadowmap
+    Matrix4 lightProjection = mat4Ortho(
+      -20.f, 20.f,
+      -20.f, 20.f,
+      0.1f, 100.f
+    );
+
+    Matrix4 lightView = mat4LookAt(
+      { 10.f, 10.f, 10.f },   // 光の位置
+      { 0.f, 0.f, 0.f },      // ターゲット
+      { 0.f, 1.f, 0.f }       // 上
+    );
+
+    Matrix4 lightSpace = mat4Mul(lightProjection, lightView);
+
+    glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+    glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
+    glClear(GL_DEPTH_BUFFER_BIT);
+
+    depthProgram.Use();
+    depthProgram.SetUniformMat4("uLightSpace", lightSpace);
+
+    for (auto &obj : objects) {
+      if (obj.mesh.vertices.empty()) continue;
+      if (obj.mesh.indices.empty()) continue;
+
+      Matrix4 T = mat4Translate(
+        obj.position.pos.x,
+        obj.position.pos.y,
+        obj.position.pos.z
+      );
+
+      Matrix4 R = mat4Rotate(
+        obj.rotation.pos.x,
+        obj.rotation.pos.y,
+        obj.rotation.pos.z
+      );
+
+      Matrix4 S = mat4Scale(
+        obj.scale.pos.x,
+        obj.scale.pos.y,
+        obj.scale.pos.z
+      );
+
+      Matrix4 model = mat4Mul(T, mat4Mul(R, S));
+
+      depthProgram.SetUniformMat4("uModel", model);
+
+      VAO.BindVertexArray();
+      VBO.BindBuffer();
+      VBO.BufferData(obj.mesh.vertices.data(),
+                     obj.mesh.vertices.size() * sizeof(f32));
+
+      EBO.BindBuffer();
+      EBO.BufferData(obj.mesh.indices.data(),
+                     obj.mesh.indices.size() * sizeof(GLuint));
+
+      glDrawElements(
+        GL_TRIANGLES,
+        obj.mesh.GetIndexCount(),
+        GL_UNSIGNED_INT,
+        nullptr
+      );
+    }
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+#pragma endregion
+
     // 画面をクリア
     glBindFramebuffer(GL_FRAMEBUFFER, viewport.GetFBO());
     glViewport(0, 0, viewport.GetWidth(), viewport.GetHeight());
@@ -516,6 +683,15 @@ int main(void) {
 
     // シェーダープログラムを使用
     shaderProgram.Use();
+
+#pragma region shadowmap
+    shaderProgram.SetUniformMat4("uLightSpace", lightSpace);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, shadowMap);
+    shaderProgram.SetUniformInt("uShadowMap", 0);
+#pragma endregion
+
     luaEngine.Init();
     luaEngine.Update();
 
@@ -544,7 +720,6 @@ int main(void) {
       );
 
       Matrix4 model = mat4Mul(T, mat4Mul(R, S));
-
       glUniformMatrix4fv(shaderProgram.GetUniformLocation("uModel"), 1, GL_FALSE, model.m);
 
       // 描画

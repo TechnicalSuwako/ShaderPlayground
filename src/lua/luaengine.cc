@@ -866,6 +866,10 @@ namespace lua {
       glUniform4ui(loc, x, y, z, w);
     };
 
+    lua["le"]["gfx"]["set_uniform_vec3"] = [&](const string &name, f32 x, f32 y, f32 z) {
+      m_Program->SetUniformVec3(name, { x, y, z });
+    };
+
     lua["le"]["gfx"]["set_uniform_mat4"] = [&](const string &name, sol::table t) {
       if (!m_Program) return;
       if (t.size() != 16) {

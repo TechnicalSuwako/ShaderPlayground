@@ -103,6 +103,20 @@ GLint Program::GetUniformLocation(string var) {
   return glGetUniformLocation(id, var.c_str());
 }
 
+void Program::SetUniformVec3(const string &name, Vector3 v) {
+  glUniform3f(GetUniformLocation(name), v.pos.x, v.pos.y, v.pos.z);
+}
+
+void Program::SetUniformMat4(const string &name, Matrix4 v) {
+  glUniformMatrix4fv(GetUniformLocation(name), 1, GL_FALSE, v.m);
+}
+
+void Program::SetUniformInt(const string &name, i32 v) {
+  glUniform1i(GetUniformLocation(name), v);
+}
+
+/////////////////
+
 string GetDefaultVertexShader() {
   return R"(#version 460 core
 

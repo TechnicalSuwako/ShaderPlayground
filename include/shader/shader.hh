@@ -38,6 +38,8 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <glad/glad.h>
 #include <util/types.hh>
+#include <util/vector.hh>
+#include <util/matrix.hh>
 
 struct Shader {
   GLuint id;
@@ -59,6 +61,9 @@ struct Program {
   void ClearColor(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha);
   void Clear(GLbitfield mask = GL_COLOR_BUFFER_BIT);
   GLint GetUniformLocation(string var);
+  void SetUniformVec3(const string &name, Vector3 v);
+  void SetUniformMat4(const string &name, Matrix4 v);
+  void SetUniformInt(const string &name, i32 v);
 };
 
 struct VertexLayout {

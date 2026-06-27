@@ -209,4 +209,20 @@ inline Matrix4 mat4LookAt(Vector3 eye, Vector3 target, Vector3 up) {
   return out;
 }
 
+inline Matrix4 mat4Ortho(f32 left, f32 right, f32 bottom, f32 top, f32 near, f32 far) {
+  Matrix4 m = {};
+
+  m.m[0] = 2.0f / (right - left);
+  m.m[5] = 2.0f / (top - bottom);
+  m.m[10] = -2.0f / (far - near);
+
+  m.m[12] = -(right + left) / (right - left);
+  m.m[13] = -(top + bottom) / (top - bottom);
+  m.m[14] = -(far + near) / (far - near);
+
+  m.m[15] = 1.0f;
+
+  return m;
+}
+
 #endif // MATRIX_HH
