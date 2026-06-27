@@ -152,7 +152,8 @@ string GetDefaultLuaCode() {
   }
 }
 
-le.gfx.set_mesh(mesh)
+le.gfx.add_mesh(mesh)
+le.gfx.set_position(0, 0, 0, 0)
 
 function init()
   le.log("screen res: ", le.sys.get_resolution())

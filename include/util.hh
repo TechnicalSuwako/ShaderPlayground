@@ -39,6 +39,7 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <util/glfwpp.hh>
 #include <util/types.hh>
 #include <util/vector.hh>
+#include <util/matrix.hh>
 #include <util/sqlitepp.hh>
 #include <util/structs.hh>
 #include <util/random.hh>

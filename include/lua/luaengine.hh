@@ -38,6 +38,8 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <util/types.hh>
 #include <util/structs.hh>
+#include <util/vector.hh>
+#include <shader/buffers.hh>
 #define SOL_LUAJIT 1
 #define SOL_ALL_SAFETIES_ON 1
 #include <sol.hpp>
@@ -67,14 +69,21 @@ namespace lua {
     }
   };
 
+  struct MeshObject {
+    LuaMesh mesh;
+    Vector3 position;
+    Vector3 rotation;
+    Vector3 scale;
+  };
+
   class LuaEngine {
     public:
       LuaEngine(const string &code, Program *prog, Info *info);
       ~LuaEngine();
 
     public:
-      LuaMesh &GetMesh() { return m_Mesh; };
-      const LuaMesh &GetMesh() const { return m_Mesh; };
+      vector<MeshObject> &GetObjects() { return m_Objects; }
+      const vector<MeshObject> &GetObjects() const { return m_Objects; }
 
     public:
       void Reload(const string &code);
@@ -101,7 +110,7 @@ namespace lua {
       void Execute(sol::state &lua);
 
     private:
-      LuaMesh m_Mesh;
+      vector<MeshObject> m_Objects;
       sol::state m_Lua;
       string m_Code;
       bool m_IsInitialized = false;

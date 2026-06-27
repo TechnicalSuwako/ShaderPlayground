@@ -155,22 +155,27 @@ int main(void) {
 
   // 頂点データはLuaから受け取る
   lua::LuaEngine luaEngine(info.LUA.code, &shaderProgram, &info);
-  auto &mesh = luaEngine.GetMesh();
+  info.pendingCompile = true;
+  auto &objects = luaEngine.GetObjects();
 
   VertexArrays VAO(1);
   Buffers VBO(Buffer, 1);
   Buffers EBO(ArrayBuffer, 1);
 
-  VAO.BindVertexArray();
-  VBO.BindBuffer();
-  VBO.BufferData(mesh.vertices.data(), mesh.vertices.size() * sizeof(f32));
-  EBO.BindBuffer();
-  EBO.BufferData(mesh.indices.data(), mesh.indices.size() * sizeof(GLuint));
+  for (auto &obj : objects) {
+    VAO.BindVertexArray();
 
-  // 頂点属性
-  for (const auto &a : mesh.attr) {
-    glVertexAttribPointer(a.location, a.size, GL_FLOAT, GL_FALSE, a.stride, (void *)(uintptr_t)a.offset);
-    glEnableVertexAttribArray(a.location);
+    VBO.BindBuffer();
+    VBO.BufferData(obj.mesh.vertices.data(), obj.mesh.vertices.size() * sizeof(f32));
+
+    EBO.BindBuffer();
+    EBO.BufferData(obj.mesh.indices.data(), obj.mesh.indices.size() * sizeof(GLuint));
+
+    // 頂点属性
+    for (const auto &a : obj.mesh.attr) {
+      glVertexAttribPointer(a.location, a.size, GL_FLOAT, GL_FALSE, a.stride, (void *)(uintptr_t)a.offset);
+      glEnableVertexAttribArray(a.location);
+    }
   }
 
   bool isHold = false;
@@ -181,6 +186,8 @@ int main(void) {
   while (!window.ShouldClose() && info.isRunning) {
 #pragma region Lambda
     info.compile = [&]() {
+      if (!info.pendingCompile) return;
+      info.pendingCompile = false;
       if (luaEngine.GetInitializationState()) luaEngine.SetInitializationState(false);
       info.VERT.code = vertEditor.Get().GetText();
       info.FRAG.code = fragEditor.Get().GetText();
@@ -213,38 +220,40 @@ int main(void) {
         luaEngine.SetProgram(&shaderProgram);
         luaEngine.Reload(info.LUA.code);
         {
-          lua::LuaMesh newMesh = luaEngine.GetMesh();
-          if (newMesh.vertices.empty() || newMesh.indices.empty()) {
-            string msg;
-            if (info.i18n->GetCurrentLanguage().code == "ja_JP") msg = "メッシュデータが空です。";
-            else "Mesh data is empty.";
-            throw std::runtime_error(msg);
-          }
+          auto &newObj = luaEngine.GetObjects();
+          for (auto &obj : newObj) {
+            if (obj.mesh.vertices.empty() || obj.mesh.indices.empty()) {
+              string msg;
+              if (info.i18n->GetCurrentLanguage().code == "ja_JP") msg = "メッシュデータが空です。";
+              else msg = "Mesh data is empty.";
+              throw std::runtime_error(msg);
+            }
 
-          VAO.BindVertexArray();
+            VAO.BindVertexArray();
 
-          VBO.BindBuffer();
-          VBO.BufferData(
-            newMesh.vertices.data(),
-            newMesh.vertices.size() * sizeof(f32)
-          );
-
-          EBO.BindBuffer();
-          EBO.BufferData(
-            newMesh.indices.data(),
-            newMesh.indices.size() * sizeof(u32)
-          );
-
-          for (const auto &a : newMesh.attr) {
-            glVertexAttribPointer(
-              a.location,
-              a.size,
-              GL_FLOAT,
-              GL_FALSE,
-              a.stride,
-              (any)(uintptr_t)a.offset
+            VBO.BindBuffer();
+            VBO.BufferData(
+              obj.mesh.vertices.data(),
+              obj.mesh.vertices.size() * sizeof(f32)
             );
-            glEnableVertexAttribArray(a.location);
+
+            EBO.BindBuffer();
+            EBO.BufferData(
+              obj.mesh.indices.data(),
+              obj.mesh.indices.size() * sizeof(u32)
+            );
+
+            for (const auto &a : obj.mesh.attr) {
+              glVertexAttribPointer(
+                a.location,
+                a.size,
+                GL_FLOAT,
+                GL_FALSE,
+                a.stride,
+                (any)(uintptr_t)a.offset
+              );
+              glEnableVertexAttribArray(a.location);
+            }
           }
         }
 
@@ -346,7 +355,7 @@ int main(void) {
           nTit = info.shaderName + "（" + info.i18n->GetWord("editorlua") + "）";
           luaEditor.SetTitle(nTit + "###LuaEditor");
 
-          info.compile();
+          info.pendingCompile = true;
 
           gui::LogEntry entry;
           entry.type = gui::LogType::Info;
@@ -378,7 +387,7 @@ int main(void) {
           nTit = info.shaderName + "（" + info.i18n->GetWord("editorlua") + "）";
           luaEditor.SetTitle(nTit + "###LuaEditor");
 
-          info.compile();
+          info.pendingCompile = true;
 
           gui::LogEntry entry;
           entry.type = gui::LogType::Info;
@@ -419,7 +428,7 @@ int main(void) {
 
     if (!isHold) {
       if (isCompileKey) {
-        info.compile();
+        info.pendingCompile = true;
       }
 
       if (isNewKey) {
@@ -481,6 +490,7 @@ int main(void) {
     }
 
     info.create();
+    info.compile();
 
 #ifndef PRODUCTION_BUILD
     if (showDemo) ImGui::ShowDemoWindow(&showDemo);
@@ -509,9 +519,43 @@ int main(void) {
     luaEngine.Init();
     luaEngine.Update();
 
-    // クアッドを描画
-    VAO.BindVertexArray();
-    glDrawElements(GL_TRIANGLES, mesh.GetIndexCount(), GL_UNSIGNED_INT, nullptr);
+    auto &objects = luaEngine.GetObjects();
+    for (auto &obj : objects) {
+      if (obj.mesh.vertices.empty()) continue;
+      if (obj.mesh.indices.empty()) continue;
+
+      // モデルマトリックスの作成
+      Matrix4 T = mat4Translate(
+        obj.position.pos.x,
+        obj.position.pos.y,
+        obj.position.pos.z
+      );
+
+      Matrix4 R = mat4Rotate(
+        obj.rotation.pos.x,
+        obj.rotation.pos.y,
+        obj.rotation.pos.z
+      );
+
+      Matrix4 S = mat4Scale(
+        obj.scale.pos.x,
+        obj.scale.pos.y,
+        obj.scale.pos.z
+      );
+
+      Matrix4 model = mat4Mul(T, mat4Mul(R, S));
+
+      glUniformMatrix4fv(shaderProgram.GetUniformLocation("uModel"), 1, GL_FALSE, model.m);
+
+      // 描画
+      VAO.BindVertexArray();
+      VBO.BindBuffer();
+      VBO.BufferData(obj.mesh.vertices.data(), obj.mesh.vertices.size() * sizeof(f32));
+      EBO.BindBuffer();
+      EBO.BufferData(obj.mesh.indices.data(), obj.mesh.indices.size() * sizeof(GLuint));
+
+      glDrawElements(GL_TRIANGLES, obj.mesh.GetIndexCount(), GL_UNSIGNED_INT, nullptr);
+    }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     // バッファをスワップし、イベントを処理

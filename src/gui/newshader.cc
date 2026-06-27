@@ -132,8 +132,9 @@ local mesh = {
     } -- uv
   }
 }
-  
-le.gfx.set_mesh(mesh)
+
+le.gfx.add_mesh(mesh)
+le.gfx.set_position(0, 0, 0, 0)
 
 function init()
 end
@@ -211,21 +212,25 @@ local mesh = {
   }
 }
 
-le.gfx.set_mesh(mesh)
+le.gfx.add_mesh(mesh)
+le.gfx.set_position(0, 0, 0, 1)
+le.gfx.add_mesh(mesh)
+le.gfx.set_position(1, -8, -2, -11)
+le.gfx.add_mesh(mesh)
+le.gfx.set_position(2, 8, -2, -11)
 
 function init()
 end
 
 function update()
   local t = le.sys.get_time()
+
+  le.gfx.set_rotation(0, t*0.7, t*1.0, t*0.4)
+  le.gfx.set_rotation(1, t*0.2, t*0.8, t*1.4)
+  le.gfx.set_rotation(2, t*0.2, t*0.8, t*1.4)
+
   local reso = le.sys.get_resolution()
   local aspect = reso.x / reso.y
-
-  local model = le.math.rotate(
-    t * 0.7,
-    t * 1.0,
-    t * 0.4
-  )
 
   local view = le.math.look_at(
     0, 0, 4,   -- eye
@@ -240,7 +245,6 @@ function update()
     100.0
   )
 
-  le.gfx.set_uniform_mat4("uModel", model)
   le.gfx.set_uniform_mat4("uView", view)
   le.gfx.set_uniform_mat4("uProjection", projection)
 end)";

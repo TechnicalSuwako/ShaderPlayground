@@ -59,6 +59,7 @@ namespace lua {
 
   void LuaEngine::Reload(const string &code) {
     m_Code = code;
+    m_Objects.clear();
     m_Lua = MakeAPI();
     Execute(m_Lua);
   }
@@ -612,16 +613,19 @@ namespace lua {
   void LuaEngine::BindGraphics(sol::state &lua) {
     lua["le"]["gfx"] = lua.create_table();
 
-    lua["le"]["gfx"]["set_mesh"] = [&](sol::table t) {
-      m_Mesh.vertices.clear();
-      m_Mesh.indices.clear();
-      m_Mesh.attr.clear();
+    lua["le"]["gfx"]["add_mesh"] = [&](sol::table t) {
+      MeshObject obj{};
+      obj.scale = { 1.f, 1.f, 1.f };
+
+      obj.mesh.vertices.clear();
+      obj.mesh.indices.clear();
+      obj.mesh.attr.clear();
 
       sol::table verts = t["vertices"];
-      for (auto &v : verts) m_Mesh.vertices.push_back(v.second.as<f32>());
+      for (auto &v : verts) obj.mesh.vertices.push_back(v.second.as<f32>());
 
       sol::table inds = t["indices"];
-      for (auto &i : inds) m_Mesh.indices.push_back(i.second.as<u32>());
+      for (auto &i : inds) obj.mesh.indices.push_back(i.second.as<u32>());
 
       sol::table attrs = t["attributes"];
       for (auto &k : attrs) {
@@ -636,13 +640,30 @@ namespace lua {
           throw std::runtime_error("メッシュアトリビュートが不正です。");
         }
 
-        m_Mesh.attr.push_back({
+        obj.mesh.attr.push_back({
           a["location"],
           a["size"],
           a["stride"],
           a["offset"],
         });
       }
+
+      m_Objects.push_back(obj);
+    };
+
+    lua["le"]["gfx"]["set_position"] = [&](i32 index, f32 x, f32 y, f32 z) {
+      if (index < 0 || index >= m_Objects.size()) return;
+      m_Objects[index].position = { x, y, z };
+    };
+
+    lua["le"]["gfx"]["set_rotation"] = [&](i32 index, f32 x, f32 y, f32 z) {
+      if (index < 0 || index >= m_Objects.size()) return;
+      m_Objects[index].rotation = { x, y, z };
+    };
+
+    lua["le"]["gfx"]["set_scale"] = [&](i32 index, f32 x, f32 y, f32 z) {
+      if (index < 0 || index >= m_Objects.size()) return;
+      m_Objects[index].scale = { x, y, z };
     };
 
     lua["le"]["gfx"]["set_uniform1"] = [&](const string &name, f32 x) {
