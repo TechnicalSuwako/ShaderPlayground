@@ -203,18 +203,12 @@ local mesh = {
   },
 
   indices = {
-    -- mae
-    0,1,2, 2,3,0,
-    -- migi
-    1,5,6, 6,2,1,
-    -- usiro
-    5,4,7, 7,6,5,
-    -- hidari
-    4,0,3, 3,7,4,
-    -- ue
-    3,2,6, 6,7,3,
-    -- sita
-    4,5,1, 1,0,4
+    0,1,2, 2,3,0,  -- mae
+    1,5,6, 6,2,1,  -- migi
+    5,4,7, 7,6,5,  -- usiro
+    4,0,3, 3,7,4,  -- hidari
+    3,2,6, 6,7,3,  -- ue
+    4,5,1, 1,0,4   -- sita
   },
 
   attributes = {
@@ -238,7 +232,7 @@ function update()
 
   le.gfx.set_rotation(0, t*0.7, t*1.0, t*0.4)
   le.gfx.set_rotation(1, t*0.2, t*0.8, t*1.4)
-  le.gfx.set_rotation(2, t*0.2, t*0.8, t*1.4)
+  le.gfx.set_rotation(2, t*0.4, t*0.3, t*0.8)
 
   local reso = le.sys.get_resolution()
   local aspect = reso.x / reso.y

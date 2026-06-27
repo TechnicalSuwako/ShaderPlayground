@@ -108,6 +108,7 @@ namespace lua {
       void BindMath(sol::state &lua);
       void BindGraphics(sol::state &lua);
       void Execute(sol::state &lua);
+      i32 StringToKey(const string &key);
 
     private:
       vector<MeshObject> m_Objects;

@@ -155,6 +155,18 @@ namespace lua {
       sol::lib::string
     );
 
+    out.new_usertype<Vector2>(
+      "Vector2",
+      "x", sol::property(
+        [](Vector2 &v) { return v.pos.x; },
+        [](Vector2 &v, f32 val) { v.pos.x = val; }
+      ),
+      "y", sol::property(
+        [](Vector2 &v) { return v.pos.y; },
+        [](Vector2 &v, f32 val) { v.pos.y = val; }
+      )
+    );
+
     out.new_usertype<Vector2i>(
       "Vector2i",
       "x", sol::property(
@@ -200,6 +212,22 @@ namespace lua {
       "y", sol::property(
         [](Vector2d &v) { return v.pos.y; },
         [](Vector2d &v, f64 val) { v.pos.y = val; }
+      )
+    );
+
+    out.new_usertype<Vector3>(
+      "Vector3",
+      "x", sol::property(
+        [](Vector3 &v) { return v.pos.x; },
+        [](Vector3 &v, f32 val) { v.pos.x = val; }
+      ),
+      "y", sol::property(
+        [](Vector3 &v) { return v.pos.y; },
+        [](Vector3 &v, f32 val) { v.pos.y = val; }
+      ),
+      "z", sol::property(
+        [](Vector3 &v) { return v.pos.z; },
+        [](Vector3 &v, f32 val) { v.pos.z = val; }
       )
     );
 
@@ -264,6 +292,26 @@ namespace lua {
       "z", sol::property(
         [](Vector3d &v) { return v.pos.z; },
         [](Vector3d &v, f64 val) { v.pos.z = val; }
+      )
+    );
+
+    out.new_usertype<Vector4>(
+      "Vector4",
+      "x", sol::property(
+        [](Vector4 &v) { return v.pos.x; },
+        [](Vector4 &v, f32 val) { v.pos.x = val; }
+      ),
+      "y", sol::property(
+        [](Vector4 &v) { return v.pos.y; },
+        [](Vector4 &v, f32 val) { v.pos.y = val; }
+      ),
+      "z", sol::property(
+        [](Vector4 &v) { return v.pos.z; },
+        [](Vector4 &v, f32 val) { v.pos.z = val; }
+      ),
+      "w", sol::property(
+        [](Vector4 &v) { return v.pos.w; },
+        [](Vector4 &v, f32 val) { v.pos.w = val; }
       )
     );
 
@@ -497,6 +545,7 @@ namespace lua {
 
   void LuaEngine::BindIO(sol::state &lua) {
     lua["le"]["io"] = lua.create_table();
+    lua["le"]["io"]["key"] = lua.create_table();
 
     lua["le"]["io"]["get_mouse"] = [&]() -> Vector2d {
       Vector2d cursor{};
@@ -504,8 +553,19 @@ namespace lua {
       return cursor;
     };
 
-    lua["le"]["io"]["is_key_down"] = [&](int key) -> bool {
-      return m_Info->window->GetKey(key) == GLFW_PRESS;
+    lua["le"]["io"]["key"]["is_press"] = [this](const string &key) -> bool {
+      if (!m_Info->viewportFocused) return false;
+      return m_Info->window->GetKey(StringToKey(key)) == GLFW_PRESS;
+    };
+
+    lua["le"]["io"]["key"]["is_release"] = [this](const string &key) -> bool {
+      if (!m_Info->viewportFocused) return false;
+      return m_Info->window->GetKey(StringToKey(key)) == GLFW_RELEASE;
+    };
+
+    lua["le"]["io"]["key"]["is_hold"] = [this](const string &key) -> bool {
+      if (!m_Info->viewportFocused) return false;
+      return m_Info->window->GetKey(StringToKey(key)) == GLFW_REPEAT;
     };
   }
 
@@ -651,14 +711,32 @@ namespace lua {
       m_Objects.push_back(obj);
     };
 
+    lua["le"]["gfx"]["get_position"] = [&](i32 index) -> Vector3 {
+      if (index < 0 || index >= m_Objects.size()) return { 0, 0, 0 };
+      auto pos = m_Objects[index].position.pos;
+      return { pos.x, pos.y, pos.z };
+    };
+
     lua["le"]["gfx"]["set_position"] = [&](i32 index, f32 x, f32 y, f32 z) {
       if (index < 0 || index >= m_Objects.size()) return;
       m_Objects[index].position = { x, y, z };
     };
 
+    lua["le"]["gfx"]["get_rotation"] = [&](i32 index) -> Vector3 {
+      if (index < 0 || index >= m_Objects.size()) return { 0, 0, 0 };
+      auto pos = m_Objects[index].rotation.pos;
+      return { pos.x, pos.y, pos.z };
+    };
+
     lua["le"]["gfx"]["set_rotation"] = [&](i32 index, f32 x, f32 y, f32 z) {
       if (index < 0 || index >= m_Objects.size()) return;
       m_Objects[index].rotation = { x, y, z };
+    };
+
+    lua["le"]["gfx"]["get_scale"] = [&](i32 index) -> Vector3 {
+      if (index < 0 || index >= m_Objects.size()) return { 0, 0, 0 };
+      auto pos = m_Objects[index].scale.pos;
+      return { pos.x, pos.y, pos.z };
     };
 
     lua["le"]["gfx"]["set_scale"] = [&](i32 index, f32 x, f32 y, f32 z) {
@@ -897,5 +975,62 @@ namespace lua {
       sol::error err = res;
       LogError(err);
     }
+  }
+
+  i32 LuaEngine::StringToKey(const string &key) {
+    static std::unordered_map<string, i32> map = {
+      { "q", GLFW_KEY_Q },
+      { "w", GLFW_KEY_W },
+      { "e", GLFW_KEY_E },
+      { "r", GLFW_KEY_R },
+      { "t", GLFW_KEY_T },
+      { "y", GLFW_KEY_Y },
+      { "u", GLFW_KEY_U },
+      { "i", GLFW_KEY_I },
+      { "o", GLFW_KEY_O },
+      { "p", GLFW_KEY_P },
+
+      { "a", GLFW_KEY_A },
+      { "s", GLFW_KEY_S },
+      { "d", GLFW_KEY_D },
+      { "f", GLFW_KEY_F },
+      { "g", GLFW_KEY_G },
+      { "h", GLFW_KEY_H },
+      { "j", GLFW_KEY_J },
+      { "k", GLFW_KEY_K },
+      { "l", GLFW_KEY_L },
+
+      { "z", GLFW_KEY_Z },
+      { "x", GLFW_KEY_X },
+      { "c", GLFW_KEY_C },
+      { "v", GLFW_KEY_V },
+      { "b", GLFW_KEY_B },
+      { "n", GLFW_KEY_N },
+      { "m", GLFW_KEY_M },
+
+      { "1", GLFW_KEY_1 },
+      { "2", GLFW_KEY_2 },
+      { "3", GLFW_KEY_3 },
+      { "4", GLFW_KEY_4 },
+      { "5", GLFW_KEY_5 },
+      { "6", GLFW_KEY_6 },
+      { "7", GLFW_KEY_7 },
+      { "8", GLFW_KEY_8 },
+      { "9", GLFW_KEY_9 },
+      { "0", GLFW_KEY_0 },
+
+      { "enter", GLFW_KEY_ENTER },
+      { "space", GLFW_KEY_SPACE },
+      { "shift", GLFW_KEY_LEFT_SHIFT | GLFW_KEY_RIGHT_SHIFT },
+      { "backspace", GLFW_KEY_BACKSPACE },
+      { "up", GLFW_KEY_UP },
+      { "down", GLFW_KEY_DOWN },
+      { "left", GLFW_KEY_LEFT },
+      { "right", GLFW_KEY_RIGHT },
+    };
+
+    auto it = map.find(key);
+    if (it != map.end()) return it->second;
+    return GLFW_KEY_UNKNOWN;
   }
 } // namespace lua

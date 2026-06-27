@@ -117,6 +117,7 @@ namespace gui {
   void ViewPort::Draw(Info &info) {
     string tit = info.i18n->GetWord("editorviewport") + "###View";
     ImGui::Begin(tit.c_str());
+    info.viewportFocused = ImGui::IsWindowFocused();
 
     ImVec2 avail = ImGui::GetContentRegionAvail();
     if ((i32)avail.x != m_Width || (i32)avail.y != m_Height) {
