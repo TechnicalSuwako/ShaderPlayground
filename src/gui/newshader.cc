@@ -36,6 +36,7 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 #include <gui/newshader.hh>
 #include <database/locale.hh>
+#include <util/vector.hh>
 #include <imgui.h>
 
 namespace gui {
@@ -45,6 +46,7 @@ namespace gui {
     newShader.id = 0;
     if (curLang == "ja_JP") newShader.name = "(名無し)";
     else newShader.name = "(Unnamed)";
+    newShader.clearColor.rgba = { 0.f, 0.f, 0.f, 1.f };
     newShader.description = "";
 
     newShader.vertexShader.id = 0;

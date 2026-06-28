@@ -183,12 +183,15 @@ void main() { })";
   gui::Manual manual;
 
   // データベースからシェーダーとLuaコードの受け取り
-  db::ShaderData shaderData = db::GetShader(db, 1);
-  info.shaderId = shaderData.id;
-  info.shaderName = shaderData.name;
-  info.VERT = shaderData.vertexShader;
-  info.FRAG = shaderData.fragmentShader;
-  info.LUA = shaderData.luaCode;
+  {
+    db::ShaderData shaderData = db::GetShader(db, 1);
+    info.shaderId = shaderData.id;
+    info.shaderName = shaderData.name;
+    info.sceneClearColor = shaderData.clearColor;
+    info.VERT = shaderData.vertexShader;
+    info.FRAG = shaderData.fragmentShader;
+    info.LUA = shaderData.luaCode;
+  }
 
   string title = info.shaderName + "（" + info.i18n->GetWord("editorvertshader") + "）";
   gui::Editor vertEditor((title + "###VertexEditor").c_str(), "VertexEditor", info.VERT.code, gui::Glsl, ge.GetCjkFont(), ge.GetMonoFont());
@@ -365,6 +368,12 @@ void main() { })";
           return;
         }
 
+        db::ShaderData shdr;
+        shdr.id = info.shaderId;
+        shdr.clearColor = info.sceneClearColor;
+
+        db::SaveSkybox(db, shdr);
+        db::SaveCode(db, info.VERT);
         db::SaveCode(db, info.VERT);
         db::SaveCode(db, info.FRAG);
         db::SaveCode(db, info.LUA);
@@ -392,7 +401,7 @@ void main() { })";
       if (ImGui::BeginPopupModal(info.i18n->GetWord("fileopenshader").c_str(), nullptr)) {
         if (ImGui::IsKeyPressed(ImGuiKey_Escape)) ImGui::CloseCurrentPopup();
 
-        vector <db::ShaderData > shdrs = db::GetAllShaders(db);
+        vector <db::ShaderData> shdrs = db::GetAllShaders(db);
         ImGui::BeginChild("ShaderList", ImVec2(0, 300), true);
 
         for (const auto &s : shdrs) {
@@ -417,6 +426,7 @@ void main() { })";
             db::ShaderData shaderData = db::GetShader(db, selectedId);
             info.shaderId = shaderData.id;
             info.shaderName = shaderData.name;
+            info.sceneClearColor = shaderData.clearColor;
             info.VERT = shaderData.vertexShader;
             info.FRAG = shaderData.fragmentShader;
             info.LUA = shaderData.luaCode;
@@ -470,6 +480,7 @@ void main() { })";
           db::ShaderData shdr = db::GetShader(db, db::GetLastShaderID(db));
           info.shaderId = shdr.id;
           info.shaderName = shdr.name;
+          info.sceneClearColor = shdr.clearColor;
           info.VERT = shdr.vertexShader;
           info.FRAG = shdr.fragmentShader;
           info.LUA = shdr.luaCode;
@@ -499,6 +510,7 @@ void main() { })";
           auto shdr = newShader.Make(gui::ShaderType::Simple2D);
           info.shaderId = shdr.id;
           info.shaderName = shdr.name;
+          info.sceneClearColor = shdr.clearColor;
           info.VERT = shdr.vertexShader;
           info.FRAG = shdr.fragmentShader;
           info.LUA = shdr.luaCode;
@@ -531,6 +543,7 @@ void main() { })";
           auto shdr = newShader.Make(gui::ShaderType::Simple3D);
           info.shaderId = shdr.id;
           info.shaderName = shdr.name;
+          info.sceneClearColor = shdr.clearColor;
           info.VERT = shdr.vertexShader;
           info.FRAG = shdr.fragmentShader;
           info.LUA = shdr.luaCode;
@@ -563,6 +576,7 @@ void main() { })";
           auto shdr = newShader.Make(gui::ShaderType::Scene);
           info.shaderId = shdr.id;
           info.shaderName = shdr.name;
+          info.sceneClearColor = shdr.clearColor;
           info.VERT = shdr.vertexShader;
           info.FRAG = shdr.fragmentShader;
           info.LUA = shdr.luaCode;
@@ -790,8 +804,11 @@ void main() { })";
     // 画面をクリア
     glBindFramebuffer(GL_FRAMEBUFFER, viewport.GetFBO());
     glViewport(0, 0, viewport.GetWidth(), viewport.GetHeight());
-    shaderProgram.ClearColor(0.f, 0.f, 0.f, 1.f);
-    shaderProgram.Clear();
+    {
+      auto cc = info.sceneClearColor.rgba;
+      shaderProgram.ClearColor(cc.r, cc.g, cc.b, cc.a);
+      shaderProgram.Clear();
+    }
 
     // シェーダープログラムを使用
     shaderProgram.Use();

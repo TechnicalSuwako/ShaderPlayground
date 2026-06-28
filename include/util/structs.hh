@@ -37,6 +37,7 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #pragma once
 
 #include <util/glfwpp.hh>
+#include <util/vector.hh>
 #include <version.hh>
 #include <functional>
 #include <string>
@@ -75,6 +76,7 @@ struct Info {
   db::CodeData FRAG = {};
   db::CodeData LUA = {};
   std::string currentFile = "";
+  Vector4 sceneClearColor = {};
 
   gui::ConsoleLog *cmd;
   db::Locale *i18n;

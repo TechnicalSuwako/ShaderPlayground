@@ -73,6 +73,21 @@ namespace db {
     }
   }
 
+  void getShaderSkybox(sqlitepp::Instance &db, ShaderData &data) {
+    sqlitepp::Stmt stmt(db.GetDB());
+    stmt.Prepare("SELECT clear_r, clear_g, clear_b, clear_a FROM scene_skybox WHERE scene_id = ?;");
+    stmt.BindInt(1, data.id);
+
+    while (stmt.Step() == SQLITE_ROW) {
+      f32 r = stmt.ColumnDouble(0);
+      f32 g = stmt.ColumnDouble(1);
+      f32 b = stmt.ColumnDouble(2);
+      f32 a = stmt.ColumnDouble(3);
+
+      data.clearColor = { r, g, b, a };
+    }
+  }
+
   vector<ShaderData> GetAllShaders(sqlitepp::Instance &db) {
     vector<ShaderData> out;
 
@@ -85,6 +100,7 @@ namespace db {
       data.name = stmt.ColumnText(1);
       data.description = stmt.ColumnText(2);
       getShaderCode(db, data);
+      getShaderSkybox(db, data);
 
       out.push_back(std::move(data));
     }
@@ -103,19 +119,33 @@ namespace db {
       data.name = stmt.ColumnText(1);
       data.description = stmt.ColumnText(2);
       getShaderCode(db, data);
+      getShaderSkybox(db, data);
     }
 
     return data;
   }
 
-  void insertShaderCode(sqlitepp::Instance &db, const CodeData &data, u32 id) {
+  void insertSceneCode(sqlitepp::Instance &db, const CodeData &data, u32 id) {
     sqlitepp::Stmt stmt(db.GetDB());
     stmt.Prepare("INSERT INTO scene_code (scene_id, code_type, code, filename) VALUES (?, ?, ?, ?);");
     stmt.BindInt(1, id);
     stmt.BindInt(2, static_cast<u32>(data.type));
     stmt.BindText(3, data.code);
     stmt.BindText(4, data.filename);
-    assert(stmt.Step() == SQLITE_DONE && "シェーダーコードの保存に失敗。\n");
+    assert(stmt.Step() == SQLITE_DONE && "シーンコードの保存に失敗。\n");
+  }
+
+  void insertSceneSkybox(sqlitepp::Instance &db, const ShaderData &data, u32 id) {
+    sqlitepp::Stmt stmt(db.GetDB());
+    stmt.Prepare("INSERT INTO scene_skybox (scene_id, clear_r, clear_g, clear_b, clear_a) VALUES (?, ?, ?, ?, ?);");
+    auto col = data.clearColor.rgba;
+
+    stmt.BindInt(1, id);
+    stmt.BindDouble(2, col.r);
+    stmt.BindDouble(3, col.g);
+    stmt.BindDouble(4, col.b);
+    stmt.BindDouble(5, col.a);
+    assert(stmt.Step() == SQLITE_DONE && "シーンスカイボックスの保存に失敗。\n");
   }
 
   void SaveNewShader(sqlitepp::Instance &db, const ShaderData &data) {
@@ -125,11 +155,26 @@ namespace db {
     stmt.BindText(1, data.name);
     stmt.BindText(2, data.description);
 
-    assert(stmt.Step() == SQLITE_DONE && "シェーダーの保存に失敗。\n");
+    assert(stmt.Step() == SQLITE_DONE && "シーンの保存に失敗。\n");
     u32 id = GetLastShaderID(db);
-    insertShaderCode(db, data.vertexShader, id);
-    insertShaderCode(db, data.fragmentShader, id);
-    insertShaderCode(db, data.luaCode, id);
+    insertSceneSkybox(db, data, id);
+    insertSceneCode(db, data.vertexShader, id);
+    insertSceneCode(db, data.fragmentShader, id);
+    insertSceneCode(db, data.luaCode, id);
+  }
+
+  void SaveSkybox(sqlitepp::Instance &db, const ShaderData &data) {
+    sqlitepp::Stmt stmt(db.GetDB());
+    stmt.Prepare("UPDATE scene_skybox SET clear_r = ?, clear_g = ?, clear_b = ?, clear_a = ? WHERE scene_id = ?;");
+    auto col = data.clearColor.rgba;
+
+    stmt.BindDouble(1, col.r);
+    stmt.BindDouble(2, col.g);
+    stmt.BindDouble(3, col.b);
+    stmt.BindDouble(4, col.a);
+    stmt.BindDouble(5, data.id);
+
+    assert(stmt.Step() == SQLITE_DONE && "スカイボックスの保存に失敗。\n");
   }
 
   void SaveCode(sqlitepp::Instance &db, const CodeData &data) {

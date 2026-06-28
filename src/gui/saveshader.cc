@@ -46,6 +46,7 @@ namespace gui {
     db::ShaderData saveShader = {};
     saveShader.name = m_Info->shaderName;
     saveShader.description = "";
+    saveShader.clearColor = m_Info->sceneClearColor;
     saveShader.vertexShader.filename = m_Info->shaderName + ".vert";
     saveShader.vertexShader.type = db::ShaderCodeType::GlslVertex;
     saveShader.vertexShader.code = m_Info->VERT.code;

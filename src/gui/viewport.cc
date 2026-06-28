@@ -125,6 +125,29 @@ namespace gui {
     }
 
     ImGui::Image((ImTextureID)(intptr_t)m_Texture, avail, ImVec2(0, 1), ImVec2(1, 0));
+
+    if (ImGui::BeginPopupContextItem("scene props")) {
+      Vector4 col = info.sceneClearColor;
+      ImVec4 bytecol(
+        col.rgba.r,
+        col.rgba.g,
+        col.rgba.b,
+        col.rgba.a
+      );
+
+      ImGui::Text("%s", info.i18n->GetWord("clearcolor").c_str());
+      ImGui::SameLine();
+      ImGui::ColorEdit4("##clearcolor", (f32 *)&bytecol);
+
+      col.rgba.a = bytecol.w;
+      col.rgba.r = bytecol.x;
+      col.rgba.g = bytecol.y;
+      col.rgba.b = bytecol.z;
+      info.sceneClearColor = col;
+
+      ImGui::EndPopup();
+    }
+
     ImGui::End();
   }
 } // namespace gui

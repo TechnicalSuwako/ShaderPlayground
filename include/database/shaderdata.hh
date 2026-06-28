@@ -37,6 +37,7 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #pragma once
 
 #include <util/types.hh>
+#include <util/vector.hh>
 #include <database/setup.hh>
 
 namespace sqlitepp {
@@ -58,11 +59,13 @@ namespace db {
     CodeData vertexShader = {};
     CodeData fragmentShader = {};
     CodeData luaCode = {};
+    Vector4 clearColor = {};
   };
 
   vector<ShaderData> GetAllShaders(sqlitepp::Instance &db);
   ShaderData GetShader(sqlitepp::Instance &db, u32 id);
   void SaveNewShader(sqlitepp::Instance &db, const ShaderData &data);
+  void SaveSkybox(sqlitepp::Instance &db, const ShaderData &data);
   void SaveCode(sqlitepp::Instance &db, const CodeData &data);
   u32 GetLastShaderID(sqlitepp::Instance &db);
 } // namespace db

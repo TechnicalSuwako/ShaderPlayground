@@ -81,8 +81,8 @@ namespace db {
 CREATE TRIGGER IF NOT EXISTS version_updated_at
 AFTER UPDATE ON version
 BEGIN
-  UPDATE version 
-  SET updated_at = CURRENT_TIMESTAMP 
+  UPDATE version
+  SET updated_at = CURRENT_TIMESTAMP
   WHERE id = NEW.id;
 END;
 
@@ -100,13 +100,34 @@ CREATE TRIGGER IF NOT EXISTS scenes_updated_at
 AFTER UPDATE ON scenes
 BEGIN
   UPDATE scenes
-  SET updated_at = CURRENT_TIMESTAMP 
+  SET updated_at = CURRENT_TIMESTAMP
+  WHERE id = NEW.id;
+END;
+
+CREATE TABLE IF NOT EXISTS scene_skybox (
+  id          INTEGER PRIMARY KEY,
+  scene_id    INTEGER NOT NULL,
+  clear_r     REAL NOT NULL,
+  clear_g     REAL NOT NULL,
+  clear_b     REAL NOT NULL,
+  clear_a     REAL NOT NULL,
+  created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+  FOREIGN KEY (scene_id) REFERENCES scenes(id) ON DELETE CASCADE
+);
+
+CREATE TRIGGER IF NOT EXISTS scene_skybox_updated_at
+AFTER UPDATE ON scene_skybox
+BEGIN
+  UPDATE scene_skybox
+  SET updated_at = CURRENT_TIMESTAMP
   WHERE id = NEW.id;
 END;
 
 CREATE TABLE IF NOT EXISTS scene_code (
   id          INTEGER PRIMARY KEY,
-  scene_id   INTEGER NOT NULL,
+  scene_id    INTEGER NOT NULL,
   code_type   INTEGER NOT NULL,
   code        TEXT NOT NULL,
   filename    TEXT,
@@ -120,7 +141,7 @@ CREATE TRIGGER IF NOT EXISTS scene_code_updated_at
 AFTER UPDATE ON scene_code
 BEGIN
   UPDATE scene_code
-  SET updated_at = CURRENT_TIMESTAMP 
+  SET updated_at = CURRENT_TIMESTAMP
   WHERE id = NEW.id;
 END;
 
@@ -266,6 +287,8 @@ CREATE TABLE IF NOT EXISTS settings (
       createWord(db, 2, "consoleloginfolangchangeok", "Language has been changed.");
       createWord(db, 1, "consoleloginfocreateok", "新しいシェーダーを作成しました。保存するには、「CTRL + S」を押して下さい。");
       createWord(db, 2, "consoleloginfocreateok", "New shader has been created. In order to save, press \"CTRL + S\".");
+      createWord(db, 1, "clearcolor", "クリアカラー");
+      createWord(db, 2, "clearcolor", "Clear color");
     }
 
     i64 shaderId = 0;
@@ -277,6 +300,18 @@ CREATE TABLE IF NOT EXISTS settings (
       stmt.BindText(2, "");
       assert(stmt.Step() == SQLITE_DONE && "最初のシェーダーを入れ込みに失敗。\n");
       shaderId = db.GetLastInsertId();
+    }
+
+    {
+      sqlitepp::Stmt stmt(db.GetDB());
+      stmt.Prepare("INSERT INTO scene_skybox (scene_id, clear_r, clear_g, clear_b, clear_a) VALUES (?, ?, ?, ?, ?);");
+      stmt.BindInt(1, shaderId);
+      stmt.BindDouble(2, 0.f);
+      stmt.BindDouble(3, 0.f);
+      stmt.BindDouble(4, 0.f);
+      stmt.BindDouble(5, 1.f);
+
+      assert(stmt.Step() == SQLITE_DONE && "最初のシェーダーを入れ込みに失敗。\n");
     }
 
     {
