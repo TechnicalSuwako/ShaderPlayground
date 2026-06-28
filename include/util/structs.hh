@@ -43,6 +43,7 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <string>
 #include <cstdint>
 #include <database/shaderdata.hh>
+#include <TextEditor.h>
 
 namespace gui {
   class ConsoleLog;
@@ -67,6 +68,7 @@ struct Info {
   bool showOpenShaderPopup = false;
   bool showSaveAsShaderPopup = false;
   bool viewportFocused = false;
+  bool editorFocused = false;
   bool pendingCompile = false;
 
   std::string version = version::full;
@@ -77,6 +79,8 @@ struct Info {
   db::CodeData LUA = {};
   std::string currentFile = "";
   Vector4 sceneClearColor = {};
+  vector<TextEditor *> textEditors;
+  TextEditor *activeEditor;
 
   gui::ConsoleLog *cmd;
   db::Locale *i18n;

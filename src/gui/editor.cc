@@ -37,7 +37,9 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <gui/editor.hh>
 
 namespace gui {
-  Editor::Editor(string title, string renderName, string code, Languages lang, ImFont *cjkFont, ImFont *monoFont) {
+  Editor::Editor(Info *info, string title, string renderName, string code, Languages lang, ImFont *cjkFont, ImFont *monoFont) : m_Info(info) {
+    m_Editor.SetTabSize(2);
+    m_Editor.SetInsertSpacesOnTabs(true);
     m_CjkFont = cjkFont;
     m_MonoFont = monoFont;
     m_Title = title;
@@ -51,12 +53,15 @@ namespace gui {
     } else if (lang == Hlsl) {
       // 現在未対応
       m_Editor.SetLanguage(TextEditor::Language::Hlsl());
+    } else if (lang == C) {
+      // 現在未対応
+      m_Editor.SetLanguage(TextEditor::Language::C());
+    } else if (lang == Cs) {
+      // 現在未対応
+      m_Editor.SetLanguage(TextEditor::Language::Cs());
     } else if (lang == Lua) {
       m_Editor.SetLanguage(TextEditor::Language::Lua());
     }
-
-    //m_Editor.SetTabSize(2);
-    //m_Editor.SetInsertSpacesOnTabs(true);
   }
 
   Editor::~Editor() {}
@@ -68,6 +73,11 @@ namespace gui {
 
     ImGui::PushFont(m_MonoFont);
     m_Editor.Render(m_RenderName.c_str());
+
+    if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) {
+      m_Info->activeEditor = &m_Editor;
+    }
+
     ImGui::PopFont();
 
     // CTRL + D

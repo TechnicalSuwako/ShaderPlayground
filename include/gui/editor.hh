@@ -37,12 +37,15 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #pragma once
 
 #include <util/types.hh>
+#include <util/structs.hh>
 
 #include <imgui.h>
 #include <TextEditor.h>
 
 namespace gui {
   enum Languages {
+    C,
+    Cs,
     Glsl,
     Hlsl,
     Lua,
@@ -50,7 +53,7 @@ namespace gui {
 
   class Editor {
     public:
-      Editor(string title, string renderName, string code, Languages lang, ImFont *cjkFont, ImFont *monoFont);
+      Editor(Info *info, string title, string renderName, string code, Languages lang, ImFont *cjkFont, ImFont *monoFont);
       ~Editor();
 
       TextEditor &Get() { return m_Editor; }
@@ -65,6 +68,7 @@ namespace gui {
       void SetTitle(const string &title) { m_Title = title; }
 
     private:
+      Info *m_Info;
       TextEditor m_Editor;
       ImFont *m_CjkFont;
       ImFont *m_MonoFont;

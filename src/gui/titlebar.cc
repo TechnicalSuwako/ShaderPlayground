@@ -156,13 +156,30 @@ namespace gui {
       }
 
       if (ImGui::BeginMenu(info.i18n->GetWord("edit").c_str())) {
-        if (ImGui::MenuItem(info.i18n->GetWord("editundo").c_str(), "Ctrl+Z", false, false)) {}
-        if (ImGui::MenuItem(info.i18n->GetWord("editredo").c_str(), "Ctrl+Y", false, false)) {}
+        if (ImGui::MenuItem(info.i18n->GetWord("editundo").c_str(), "Ctrl+Z", false, info.activeEditor && info.activeEditor->CanUndo())) {
+          info.activeEditor->Undo();
+        }
+        if (ImGui::MenuItem(info.i18n->GetWord("editredo").c_str(), "Ctrl+Y", false, info.activeEditor && info.activeEditor->CanRedo())) {
+          info.activeEditor->Redo();
+        }
         ImGui::Separator();
-        if (ImGui::MenuItem(info.i18n->GetWord("editcut").c_str(), "Ctrl+X", false, false)) {}
-        if (ImGui::MenuItem(info.i18n->GetWord("editcopy").c_str(), "Ctrl+C", false, false)) {}
-        if (ImGui::MenuItem(info.i18n->GetWord("editpaste").c_str(), "Ctrl+V", false, false)) {}
-        if (ImGui::MenuItem(info.i18n->GetWord("editduplicate").c_str(), "Ctrl+D", false, false)) {}
+        if (ImGui::MenuItem(info.i18n->GetWord("editcut").c_str(), "Ctrl+X", false, info.activeEditor)) {
+          info.activeEditor->Cut();
+        }
+        if (ImGui::MenuItem(info.i18n->GetWord("editcopy").c_str(), "Ctrl+C", false, info.activeEditor)) {
+          info.activeEditor->Copy();
+        }
+        if (ImGui::MenuItem(info.i18n->GetWord("editpaste").c_str(), "Ctrl+V", false, info.activeEditor)) {
+          info.activeEditor->Paste();
+        }
+        if (ImGui::MenuItem(info.i18n->GetWord("editselectall").c_str(), "Ctrl+A", false, info.activeEditor)) {
+          info.activeEditor->SelectAll();
+        }
+        if (ImGui::MenuItem(info.i18n->GetWord("editduplicate").c_str(), "Ctrl+D", false, info.activeEditor)) {
+          //info.activeEditor->GetLineText(info.activeEditor->GetLineHeight());
+          //info.activeEditor->Copy();
+          //info.activeEditor->Paste();
+        }
         ImGui::Separator();
         if (ImGui::MenuItem(info.i18n->GetWord("settings").c_str(), "Ctrl+,")) {
           info.isSettings = true;

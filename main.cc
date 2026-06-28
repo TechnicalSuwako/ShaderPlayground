@@ -194,13 +194,16 @@ void main() { })";
   }
 
   string title = info.shaderName + "（" + info.i18n->GetWord("editorvertshader") + "）";
-  gui::Editor vertEditor((title + "###VertexEditor").c_str(), "VertexEditor", info.VERT.code, gui::Glsl, ge.GetCjkFont(), ge.GetMonoFont());
+  gui::Editor vertEditor(&info, (title + "###VertexEditor").c_str(), "VertexEditor", info.VERT.code, gui::Glsl, ge.GetCjkFont(), ge.GetMonoFont());
+  info.textEditors.emplace_back(&vertEditor.Get());
 
   title = info.shaderName + "（" + info.i18n->GetWord("editorfragshader") + "）";
-  gui::Editor fragEditor((title + "###FragmentEditor").c_str(), "FragmentEditor", info.FRAG.code, gui::Glsl, ge.GetCjkFont(), ge.GetMonoFont());
+  gui::Editor fragEditor(&info, (title + "###FragmentEditor").c_str(), "FragmentEditor", info.FRAG.code, gui::Glsl, ge.GetCjkFont(), ge.GetMonoFont());
+  info.textEditors.emplace_back(&fragEditor.Get());
 
   title = info.shaderName + "（" + info.i18n->GetWord("editorlua") + "）";
-  gui::Editor luaEditor((title + "###LuaEditor").c_str(), "LuaEditor", info.LUA.code, gui::Lua, ge.GetCjkFont(), ge.GetMonoFont());
+  gui::Editor luaEditor(&info, (title + "###LuaEditor").c_str(), "LuaEditor", info.LUA.code, gui::Lua, ge.GetCjkFont(), ge.GetMonoFont());
+  info.textEditors.emplace_back(&luaEditor.Get());
 
   // シェーダーをコンパイル
   Shader vertexShader(info.VERT.code, GL_VERTEX_SHADER);
