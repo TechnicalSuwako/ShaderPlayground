@@ -25,6 +25,7 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define VECTOR_HH
 
 #include <util/types.hh>
+#include <cmath>
 
 union Vector2 {
   struct Position {

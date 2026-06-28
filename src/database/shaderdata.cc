@@ -39,6 +39,7 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <sqlite3.h>
 #include <iostream>
 #include <cassert>
+#include <stdexcept>
 
 namespace db {
   void getShaderCode(sqlitepp::Instance &db, ShaderData &data) {
@@ -68,7 +69,7 @@ namespace db {
         data.luaCode.code = code;
         data.luaCode.filename = filename;
       } else {
-        throw std::exception("未対応コード類。");
+        throw std::runtime_error("未対応コード類。");
       }
     }
   }
