@@ -251,6 +251,8 @@ CREATE TABLE IF NOT EXISTS settings (
       createWord(db, 2, "editcopy", "Copy");
       createWord(db, 1, "editpaste", "貼り付け(P)");
       createWord(db, 2, "editpaste", "Paste");
+      createWord(db, 1, "editselectall", "全て洗濯(A)");
+      createWord(db, 2, "editselectall", "Select All");
       createWord(db, 1, "editduplicate", "行を複製(D)");
       createWord(db, 2, "editduplicate", "Duplicate");
       createWord(db, 1, "settings", "設定(S)");

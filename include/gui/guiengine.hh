@@ -42,6 +42,8 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
 
+class TextEditor;
+
 namespace glfwpp {
   class Window;
 } // namespace glfwpp
@@ -63,4 +65,6 @@ namespace gui {
       ImFont *m_CjkFont;
       ImFont *m_MonoFont;
   }; // class GuiEngine
+
+  void DuplicateLine(TextEditor &editor);
 } // namespace gui

@@ -35,6 +35,8 @@ CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFT
 OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 #include <gui/editor.hh>
+#include <gui/guiengine.hh>
+#include <iostream>
 
 namespace gui {
   Editor::Editor(Info *info, string title, string renderName, string code, Languages lang, ImFont *cjkFont, ImFont *monoFont) : m_Info(info) {
@@ -81,20 +83,19 @@ namespace gui {
     ImGui::PopFont();
 
     // CTRL + D
-    //if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows)) {
-    //  bool ctrl = ImGui::GetIO().KeyCtrl;
+    if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows)) {
+      bool ctrl = ImGui::GetIO().KeyCtrl;
 
-    //  if (ctrl && ImGui::IsKeyPressed(ImGuiKey_D, false)) {
-    //    auto cursor = m_Editor.GetCurrentCursorPosition();
-    //    auto lines = m_Editor.GetLineText(cursor.line);
-    //  }
-    //}
+      if (ctrl && ImGui::IsKeyPressed(ImGuiKey_D, false)) {
+        DuplicateLine(m_Editor);
+      }
+    }
 
-    //RenderStatusBar(m_Editor);
+    //RenderStatusBar();
     ImGui::End();
   }
 
-  void Editor::RenderStatusBar(TextEditor editor) {
+  void Editor::RenderStatusBar() {
     static const char *languages[] = { "Lua", "GLSL", "HLSL" };
 
     static const TextEditor::Language *definitions[] = {
@@ -103,7 +104,7 @@ namespace gui {
       TextEditor::Language::Hlsl(),
     };
 
-    std::string language = editor.GetLanguageName();
+    std::string language = m_Editor.GetLanguageName();
 
     ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.15f, 0.15f, 0.15f, 1.0f));
     ImGui::BeginChild("StatusBar", ImVec2(0.0f, 0.0f), ImGuiChildFlags_Borders);
@@ -114,7 +115,7 @@ namespace gui {
         bool selected = (language == languages[n]);
 
         if (ImGui::Selectable(languages[n], selected)) {
-          editor.SetLanguage(definitions[n]);
+          m_Editor.SetLanguage(definitions[n]);
           //buildAutocompleteTrie();
         }
 
@@ -131,13 +132,11 @@ namespace gui {
 
     int line;
     int column;
-    int tabSize = editor.GetTabSize();
+    int tabSize = m_Editor.GetTabSize();
     float glyphWidth = ImGui::CalcTextSize("#").x;
-    editor.GetCurrentCursor(line, column);
+    m_Editor.GetCurrentCursor(line, column);
 
-    // determine status message
     char status[256];
-
     auto statusSize = std::snprintf(
       status,
       sizeof(status),

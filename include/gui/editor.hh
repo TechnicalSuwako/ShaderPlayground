@@ -63,9 +63,10 @@ namespace gui {
         m_Code = code;
         m_Editor.SetText(code);
       }
-      void RenderStatusBar(TextEditor editor);
+      void RenderStatusBar();
 
       void SetTitle(const string &title) { m_Title = title; }
+      const string &GetTitle() const { return m_Title; }
 
     private:
       Info *m_Info;

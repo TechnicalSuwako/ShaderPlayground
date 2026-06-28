@@ -38,6 +38,7 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <util/glfwpp.hh>
 #include <NotoSansCJKjp-Regular.h>
 #include <NotoMono-Regular.h>
+#include <TextEditor.h>
 
 namespace gui {
   GuiEngine::GuiEngine(glfwpp::Window *window) {
@@ -76,5 +77,26 @@ namespace gui {
     return ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows)
         && !ImGui::GetIO().WantTextInput
         && ImGui::IsKeyPressed(ImGuiKey_Escape);
+  }
+
+  void DuplicateLine(TextEditor &editor) {
+    if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows)) {
+      bool ctrl = ImGui::GetIO().KeyCtrl;
+
+      if (ctrl && ImGui::IsKeyPressed(ImGuiKey_D, false)) {
+        cstr clipboard = ImGui::GetClipboardText();
+        string copyClip = clipboard ? clipboard : "";
+        auto cursor = editor.GetCurrentCursorPosition();
+        auto lines = editor.GetLineText(cursor.line);
+        auto eol = lines.size();
+
+        editor.SelectLine(cursor.line);
+        editor.Copy();
+        editor.Paste();
+        editor.Paste();
+        editor.SetCursor(cursor.line + 1, cursor.column);
+        ImGui::SetClipboardText(copyClip.c_str());
+      }
+    }
   }
 } // namespace gui

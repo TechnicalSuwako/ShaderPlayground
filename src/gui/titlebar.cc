@@ -41,6 +41,7 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
 #include <database/locale.hh>
+//#include <gui/guiengine.hh>
 #include <ctime>
 
 namespace gui {
@@ -175,11 +176,9 @@ namespace gui {
         if (ImGui::MenuItem(info.i18n->GetWord("editselectall").c_str(), "Ctrl+A", false, info.activeEditor)) {
           info.activeEditor->SelectAll();
         }
-        if (ImGui::MenuItem(info.i18n->GetWord("editduplicate").c_str(), "Ctrl+D", false, info.activeEditor)) {
-          //info.activeEditor->GetLineText(info.activeEditor->GetLineHeight());
-          //info.activeEditor->Copy();
-          //info.activeEditor->Paste();
-        }
+        //if (ImGui::MenuItem(info.i18n->GetWord("editduplicate").c_str(), "Ctrl+D", false, info.activeEditor)) {
+        //  DuplicateLine(*info.activeEditor);
+        //}
         ImGui::Separator();
         if (ImGui::MenuItem(info.i18n->GetWord("settings").c_str(), "Ctrl+,")) {
           info.isSettings = true;
