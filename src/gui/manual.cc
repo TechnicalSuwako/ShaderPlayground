@@ -1,7 +1,7 @@
 /*
 # 076 License
 
-Copyright (c) テクニカル諏訪子
+Copyright (c) 076 Studio LLC
 
 Permission is hereby granted to any person obtaining a copy of the software
 Shader Playground (the "Software") to use, modify, merge, copy, publish, distribute,
