@@ -86,7 +86,7 @@ BEGIN
   WHERE id = NEW.id;
 END;
 
-CREATE TABLE IF NOT EXISTS shaders (
+CREATE TABLE IF NOT EXISTS scenes (
   id          INTEGER PRIMARY KEY,
   name        TEXT UNIQUE NOT NULL,
   description TEXT,
@@ -94,32 +94,32 @@ CREATE TABLE IF NOT EXISTS shaders (
   updated_at  DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS idx_shaders_name ON shaders(name);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_scenes_name ON scenes(name);
 
-CREATE TRIGGER IF NOT EXISTS shaders_updated_at
-AFTER UPDATE ON shaders
+CREATE TRIGGER IF NOT EXISTS scenes_updated_at
+AFTER UPDATE ON scenes
 BEGIN
-  UPDATE shaders 
+  UPDATE scenes
   SET updated_at = CURRENT_TIMESTAMP 
   WHERE id = NEW.id;
 END;
 
-CREATE TABLE IF NOT EXISTS shader_code (
+CREATE TABLE IF NOT EXISTS scene_code (
   id          INTEGER PRIMARY KEY,
-  shader_id   INTEGER NOT NULL,
+  scene_id   INTEGER NOT NULL,
   code_type   INTEGER NOT NULL,
   code        TEXT NOT NULL,
   filename    TEXT,
   created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
 
-  FOREIGN KEY (shader_id) REFERENCES shaders(id) ON DELETE CASCADE
+  FOREIGN KEY (scene_id) REFERENCES scenes(id) ON DELETE CASCADE
 );
 
-CREATE TRIGGER IF NOT EXISTS shader_code_updated_at
-AFTER UPDATE ON shader_code
+CREATE TRIGGER IF NOT EXISTS scene_code_updated_at
+AFTER UPDATE ON scene_code
 BEGIN
-  UPDATE shader_code
+  UPDATE scene_code
   SET updated_at = CURRENT_TIMESTAMP 
   WHERE id = NEW.id;
 END;
@@ -272,7 +272,7 @@ CREATE TABLE IF NOT EXISTS settings (
 
     {
       sqlitepp::Stmt stmt(db.GetDB());
-      stmt.Prepare("INSERT INTO shaders (name, description) VALUES (?, ?);");
+      stmt.Prepare("INSERT INTO scenes (name, description) VALUES (?, ?);");
       stmt.BindText(1, "default");
       stmt.BindText(2, "");
       assert(stmt.Step() == SQLITE_DONE && "最初のシェーダーを入れ込みに失敗。\n");
@@ -281,7 +281,7 @@ CREATE TABLE IF NOT EXISTS settings (
 
     {
       sqlitepp::Stmt stmt(db.GetDB());
-      stmt.Prepare("INSERT INTO shader_code (shader_id, code_type, code, filename) VALUES (?, ?, ?, ?);");
+      stmt.Prepare("INSERT INTO scene_code (scene_id, code_type, code, filename) VALUES (?, ?, ?, ?);");
       stmt.BindInt(1, shaderId);
       stmt.BindInt(2, static_cast<int>(db::ShaderCodeType::GlslVertex));
       stmt.BindText(3, GetDefaultVertexShader());
@@ -292,7 +292,7 @@ CREATE TABLE IF NOT EXISTS settings (
 
     {
       sqlitepp::Stmt stmt(db.GetDB());
-      stmt.Prepare("INSERT INTO shader_code (shader_id, code_type, code, filename) VALUES (?, ?, ?, ?);");
+      stmt.Prepare("INSERT INTO scene_code (scene_id, code_type, code, filename) VALUES (?, ?, ?, ?);");
       stmt.BindInt(1, shaderId);
       stmt.BindInt(2, static_cast<int>(db::ShaderCodeType::GlslFragment));
       stmt.BindText(3, GetDefaultFragmentShader());
@@ -303,7 +303,7 @@ CREATE TABLE IF NOT EXISTS settings (
 
     {
       sqlitepp::Stmt stmt(db.GetDB());
-      stmt.Prepare("INSERT INTO shader_code (shader_id, code_type, code, filename) VALUES (?, ?, ?, ?);");
+      stmt.Prepare("INSERT INTO scene_code (scene_id, code_type, code, filename) VALUES (?, ?, ?, ?);");
       stmt.BindInt(1, shaderId);
       stmt.BindInt(2, static_cast<int>(db::ShaderCodeType::Lua));
       stmt.BindText(3, GetDefaultLuaCode());

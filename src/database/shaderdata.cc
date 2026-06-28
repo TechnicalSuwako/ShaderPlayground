@@ -43,7 +43,7 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace db {
   void getShaderCode(sqlitepp::Instance &db, ShaderData &data) {
     sqlitepp::Stmt stmt(db.GetDB());
-    stmt.Prepare("SELECT id, code_type, code, filename FROM shader_code WHERE shader_id = ?;");
+    stmt.Prepare("SELECT id, code_type, code, filename FROM scene_code WHERE scene_id = ?;");
     stmt.BindInt(1, data.id);
 
     while (stmt.Step() == SQLITE_ROW) {
@@ -77,7 +77,7 @@ namespace db {
     vector<ShaderData> out;
 
     sqlitepp::Stmt stmt(db.GetDB());
-    stmt.Prepare("SELECT id, name, description FROM shaders ORDER BY updated_at DESC;");
+    stmt.Prepare("SELECT id, name, description FROM scenes ORDER BY updated_at DESC;");
 
     while (stmt.Step() == SQLITE_ROW) {
       ShaderData data;
@@ -95,7 +95,7 @@ namespace db {
   ShaderData GetShader(sqlitepp::Instance &db, u32 id) {
     ShaderData data = {};
     sqlitepp::Stmt stmt(db.GetDB());
-    stmt.Prepare("SELECT id, name, description FROM shaders WHERE id = ?;");
+    stmt.Prepare("SELECT id, name, description FROM scenes WHERE id = ?;");
     stmt.BindInt(1, id);
 
     while (stmt.Step() == SQLITE_ROW) {
@@ -110,7 +110,7 @@ namespace db {
 
   void insertShaderCode(sqlitepp::Instance &db, const CodeData &data, u32 id) {
     sqlitepp::Stmt stmt(db.GetDB());
-    stmt.Prepare("INSERT INTO shader_code (shader_id, code_type, code, filename) VALUES (?, ?, ?, ?);");
+    stmt.Prepare("INSERT INTO scene_code (scene_id, code_type, code, filename) VALUES (?, ?, ?, ?);");
     stmt.BindInt(1, id);
     stmt.BindInt(2, static_cast<u32>(data.type));
     stmt.BindText(3, data.code);
@@ -120,7 +120,7 @@ namespace db {
 
   void SaveNewShader(sqlitepp::Instance &db, const ShaderData &data) {
     sqlitepp::Stmt stmt(db.GetDB());
-    stmt.Prepare("INSERT INTO shaders (name, description) VALUES (?, ?);");
+    stmt.Prepare("INSERT INTO scenes (name, description) VALUES (?, ?);");
 
     stmt.BindText(1, data.name);
     stmt.BindText(2, data.description);
@@ -134,7 +134,7 @@ namespace db {
 
   void SaveCode(sqlitepp::Instance &db, const CodeData &data) {
     sqlitepp::Stmt stmt(db.GetDB());
-    stmt.Prepare("UPDATE shader_code SET code = ?, filename = ? WHERE id = ?;");
+    stmt.Prepare("UPDATE scene_code SET code = ?, filename = ? WHERE id = ?;");
 
     stmt.BindText(1, data.code);
     stmt.BindText(2, data.filename);
@@ -145,7 +145,7 @@ namespace db {
 
   u32 GetLastShaderID(sqlitepp::Instance &db) {
     sqlitepp::Stmt stmt(db.GetDB());
-    stmt.Prepare("SELECT MAX(id) FROM shaders;");
+    stmt.Prepare("SELECT MAX(id) FROM scenes;");
     return (stmt.Step() == SQLITE_ROW) ? stmt.ColumnInt(0) : 0;
   }
 } // namespace db
