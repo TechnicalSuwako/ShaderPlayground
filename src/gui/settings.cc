@@ -39,6 +39,7 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <util/structs.hh>
 #include <database/locale.hh>
 #include <imgui.h>
+#include <gui/guiengine.hh>
 
 namespace gui {
   void Settings::Draw(Info &info) {
@@ -47,6 +48,7 @@ namespace gui {
     ImGuiWindowFlags flags = 0;
     ImGui::SetNextWindowSize({ 400, 300 }, ImGuiCond_Appearing);
     ImGui::Begin(info.i18n->GetWord("settings").c_str(), &info.isSettings, flags);
+    if (GuiEngine::ShouldCloseWindowOnEscape()) info.isSettings = false;
 
     ImGui::Text("言語 / Language");
     ImGui::SameLine();

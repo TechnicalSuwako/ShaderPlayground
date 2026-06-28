@@ -67,7 +67,6 @@ struct Info {
   bool showSaveAsShaderPopup = false;
   bool viewportFocused = false;
   bool pendingCompile = false;
-  bool closePopup = false;
 
   std::string version = version::full;
   uint32_t shaderId = 0;

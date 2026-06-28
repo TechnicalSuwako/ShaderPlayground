@@ -390,6 +390,8 @@ void main() { })";
       static i32 selectedId = -1;
       ImGui::SetNextWindowSize(ImVec2(500, 400), ImGuiCond_FirstUseEver);
       if (ImGui::BeginPopupModal(info.i18n->GetWord("fileopenshader").c_str(), nullptr)) {
+        if (ImGui::IsKeyPressed(ImGuiKey_Escape)) ImGui::CloseCurrentPopup();
+
         vector <db::ShaderData > shdrs = db::GetAllShaders(db);
         ImGui::BeginChild("ShaderList", ImVec2(0, 300), true);
 
@@ -442,16 +444,20 @@ void main() { })";
 
     info.saveAs = [&]() {
       if (ImGui::BeginPopupModal(info.i18n->GetWord("filesaveasshader").c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+        if (ImGui::IsKeyPressed(ImGuiKey_Escape)) ImGui::CloseCurrentPopup();
+
         ImGui::Text(info.i18n->GetWord("fileshadername").c_str());
         ImGui::SameLine();
         static char str0[128] = "new";
-        ImGui::InputText("input text", str0, IM_COUNTOF(str0));
+        ImGui::InputText("##SaveInput", str0, IM_COUNTOF(str0));
 
         ImGui::Separator();
 
         if (ImGui::Button(info.i18n->GetWord("cancel").c_str())) {
           ImGui::CloseCurrentPopup();
         }
+
+        ImGui::SameLine();
 
         if (ImGui::Button(info.i18n->GetWord("filesave").c_str())) {
           info.shaderName = string(str0);
@@ -486,6 +492,8 @@ void main() { })";
 
     info.create = [&]() {
       if (ImGui::BeginPopupModal(info.i18n->GetWord("filenewcreateshader").c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+        if (ImGui::IsKeyPressed(ImGuiKey_Escape)) ImGui::CloseCurrentPopup();
+
         if (ImGui::Button(info.i18n->GetWord("filenew2dshader").c_str(), ImVec2(200, 0))) {
           gui::NewShader newShader(&info);
           auto shdr = newShader.Make(gui::ShaderType::Simple2D);
@@ -598,8 +606,6 @@ void main() { })";
     bool isManualKey = window.GetKey(GLFW_KEY_F1);
     bool isCompileKey = window.GetKey(GLFW_KEY_F5);
 
-    bool isEscKey = window.GetKey(GLFW_KEY_ESCAPE);
-
     bool ctrlMod = (window.GetKey(GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS || window.GetKey(GLFW_KEY_RIGHT_CONTROL) == GLFW_PRESS);
     bool shiftMod = (window.GetKey(GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS || window.GetKey(GLFW_KEY_RIGHT_SHIFT) == GLFW_PRESS);
     //bool altMod = (window.GetKey(GLFW_KEY_LEFT_ALT) == GLFW_PRESS || window.GetKey(GLFW_KEY_RIGHT_ALT) == GLFW_PRESS);
@@ -632,10 +638,6 @@ void main() { })";
       if (isSaveKey) {
         if (info.shaderId == 0) info.showSaveAsShaderPopup = true;
         else info.save();
-      }
-
-      if (isEscKey) {
-        info.closePopup = true;
       }
 
       if (isManualKey) {

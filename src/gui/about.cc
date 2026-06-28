@@ -37,6 +37,7 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <gui/about.hh>
 #include <imgui.h>
 #include <database/locale.hh>
+#include <gui/guiengine.hh>
 
 namespace gui {
   void About::Draw(Info &info) {
@@ -45,6 +46,7 @@ namespace gui {
     ImGuiWindowFlags flags = 0;
     ImGui::SetNextWindowSize({400, 300}, ImGuiCond_Appearing);
     ImGui::Begin(info.i18n->GetWord("helpabout").c_str(), &info.isAbout, flags);
+    if (GuiEngine::ShouldCloseWindowOnEscape()) info.isAbout = false;
     string name = "Shader Playground " + info.version;
     string copyright;
     string developer;

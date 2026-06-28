@@ -71,4 +71,10 @@ namespace gui {
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
   }
+
+  bool GuiEngine::ShouldCloseWindowOnEscape() {
+    return ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows)
+        && !ImGui::GetIO().WantTextInput
+        && ImGui::IsKeyPressed(ImGuiKey_Escape);
+  }
 } // namespace gui

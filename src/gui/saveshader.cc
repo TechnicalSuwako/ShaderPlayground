@@ -57,10 +57,5 @@ namespace gui {
     saveShader.luaCode.code = m_Info->LUA.code;
 
     db::SaveNewShader(db, saveShader);
-
-    LogEntry entry;
-    entry.text = saveShader.name;
-    entry.type = LogType::Normal;
-    m_Info->cmd->Add(entry);
   }
 } // namespace gui
